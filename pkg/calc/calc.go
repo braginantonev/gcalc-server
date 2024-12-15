@@ -18,8 +18,11 @@ const (
 )
 
 var (
-	DivideByZero   error = errors.New("divide by zero")
-	UnkownOperator error = errors.New("unkown operator")
+	DivideByZero          error = errors.New("divide by zero")
+	UnkownOperator        error = errors.New("unkown operator")
+	ExpressionEmpty       error = errors.New("expression empty")
+	OperationWithoutValue error = errors.New("operation dont have a value")
+	BracketsNotFound      error = errors.New("not found opened or closed bracket")
 )
 
 type Example struct {
@@ -69,7 +72,7 @@ func GetExample(example string) (string, int, Example, error) {
 		}
 
 		if (begin == -1 && end != -1) || (begin != -1 && end == -1) {
-			return "", 0, Example{}, errors.New("dont find ( or )")
+			return "", 0, Example{}, BracketsNotFound
 		}
 
 		local_ex = local_ex[begin : end+1]
@@ -83,15 +86,15 @@ func GetExample(example string) (string, int, Example, error) {
 	} else if strings.ContainsAny(local_ex, "()") {
 		var value float64
 		value, err = strconv.ParseFloat(local_ex[1:len(local_ex)-1], 64)
-		return local_ex[:], strings.IndexRune(example, rune(local_ex[0])), Example{First_value: value, Second_value: 52, Operation: Equals}, nil //52 - по рофлу, чтобы при калькулировании не возникала ошибка. Крч костыль
+		return local_ex[:], strings.IndexRune(example, rune(local_ex[0])), Example{First_value: value, Second_value: 52, Operation: Equals}, err //52 - по рофлу, чтобы при калькулировании не возникала ошибка. Крч костыль
 	} else {
 		var value float64
 		value, err = strconv.ParseFloat(local_ex, 64)
-		return "end", 0, Example{First_value: value, Second_value: 52, Operation: Equals}, nil
+		return "end", 0, Example{First_value: value, Second_value: 52, Operation: Equals}, err
 	}
 
 	if actionIdx == 0 || actionIdx == len(local_ex)-1 {
-		return "", 0, Example{}, errors.New("operation dont have a value")
+		return "", 0, Example{}, OperationWithoutValue
 	}
 
 	ex.Operation = Operator(local_ex[actionIdx])
@@ -139,7 +142,7 @@ func EraseExample(example, erase_ex string, pri_idx int, answ float64) string {
 
 func Calc(expression string) (result float64, err error) {
 	if expression == "" {
-		err = errors.New("expression empty")
+		return 0, ExpressionEmpty
 	}
 
 	for {

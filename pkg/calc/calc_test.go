@@ -178,81 +178,97 @@ func TestCalc(t *testing.T) {
 		name           string
 		expression     string
 		expected_value float64
+		expected_err   error
 	}{
 		{
-			name:           "1+1",
+			name:           "simple addition",
 			expression:     "1+1",
 			expected_value: 2,
+			expected_err:   nil,
 		},
 		{
-			name:           "-3+1",
+			name:           "addition with negative value",
 			expression:     "-3+1",
 			expected_value: -2,
+			expected_err:   nil,
 		},
 		{
-			name:           "1+1+1",
+			name:           "addition with 3 values",
 			expression:     "1+1+1",
 			expected_value: 3,
+			expected_err:   nil,
 		},
 		{
-			name:           "1*1",
+			name:           "simple multiply",
 			expression:     "1*1",
 			expected_value: 1,
+			expected_err:   nil,
 		},
 		{
-			name:           "1/1",
+			name:           "simple division",
 			expression:     "1/1",
 			expected_value: 1,
+			expected_err:   nil,
 		},
 		{
-			name:           "2+1*1",
+			name:           "division with addition",
 			expression:     "2+1*1",
 			expected_value: 3,
+			expected_err:   nil,
 		},
 		{
-			name:           "2+1*1+10/2",
+			name:           "hard example 1",
 			expression:     "2+1*1+10/2",
 			expected_value: 8,
+			expected_err:   nil,
 		},
 		{
-			name:           "(1+1)/(1+1)",
+			name:           "brackets",
 			expression:     "(1+1)/(1+1)",
 			expected_value: 1,
+			expected_err:   nil,
 		},
 		{
-			name:           "(1+10*(23-3)/2)-12",
+			name:           "hard example with brackets",
 			expression:     "(1+10*(23-3)/2)-12",
 			expected_value: 89,
+			expected_err:   nil,
 		},
 		{
-			name:           "1&1",
+			name:           "unkown operator 1",
 			expression:     "1&1",
 			expected_value: 0,
+			expected_err:   calc.UnkownOperator,
 		},
 		{
-			name:           "1+&1",
+			name:           "unkown operator 2",
 			expression:     "1+&1",
 			expected_value: 0,
+			expected_err:   calc.UnkownOperator,
 		},
 		{
-			name:           "1+1*",
+			name:           "operation without value",
 			expression:     "1+1*",
 			expected_value: 0,
+			expected_err:   calc.OperationWithoutValue,
 		},
 		{
-			name:           "2+2**2",
+			name:           "operation without value 2",
 			expression:     "2+2**2",
 			expected_value: 0,
+			expected_err:   calc.OperationWithoutValue,
 		},
 		{
-			name:           "((2+2-*(2",
+			name:           "without closed bracket",
 			expression:     "((2+2-*(2",
 			expected_value: 0,
+			expected_err:   calc.BracketsNotFound,
 		},
 		{
 			name:           "nothing",
 			expression:     "",
 			expected_value: 0,
+			expected_err:   calc.ExpressionEmpty,
 		},
 	}
 
@@ -260,11 +276,7 @@ func TestCalc(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			got, err := calc.Calc(test.expression)
 
-			if err != nil {
-				t.Error(err)
-			}
-
-			if got != test.expected_value {
+			if got != test.expected_value || !errors.Is(err, test.expected_err) {
 				t.Errorf("Calc(%q) = %f, but expected - %f", test.expression, got, test.expected_value)
 			}
 		})
