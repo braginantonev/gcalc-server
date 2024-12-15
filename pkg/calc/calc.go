@@ -10,13 +10,16 @@ import (
 type Operator rune
 
 const (
-	Plus               Operator = '+'
-	Minus              Operator = '-'
-	Multiply           Operator = '*'
-	Division           Operator = '/'
-	Equals             Operator = '='
-	Err_DivideByZero   string   = "divide by zero"
-	Err_UnkownOperator string   = "unkown operator"
+	Plus     Operator = '+'
+	Minus    Operator = '-'
+	Multiply Operator = '*'
+	Division Operator = '/'
+	Equals   Operator = '='
+)
+
+var (
+	DivideByZero   error = errors.New("divide by zero")
+	UnkownOperator error = errors.New("unkown operator")
 )
 
 type Example struct {
@@ -25,28 +28,29 @@ type Example struct {
 	Operation    Operator
 }
 
-func Calculate(ex Example) (float64, string) {
+func SolveExample(ex Example) (float64, error) {
 	if ex.Second_value == 0 {
-		return 0, Err_DivideByZero
+		return 0, DivideByZero
 	}
 
 	switch ex.Operation {
 	case Plus:
-		return ex.First_value + ex.Second_value, ""
+		return ex.First_value + ex.Second_value, nil
 	case Minus:
-		return ex.First_value - ex.Second_value, ""
+		return ex.First_value - ex.Second_value, nil
 	case Multiply:
-		return ex.First_value * ex.Second_value, ""
+		return ex.First_value * ex.Second_value, nil
 	case Division:
-		return ex.First_value / ex.Second_value, ""
+		return ex.First_value / ex.Second_value, nil
 	case Equals:
-		return ex.First_value, ""
+		return ex.First_value, nil
 	}
-	return 0, Err_UnkownOperator
+	return 0, UnkownOperator
 }
 
-// Схема замены выражения на результат в строке - довольна медленна
-// Для оптимизации можно будет попробовать превратить в такую строку где не требуется постоянная замена
+// * Заменяет выражение на его ответ
+// ! Реализация данной функции довольно таки херовая
+// ! Для оптимизации можно будет попробовать превратить в такую строку где не требуется постоянная замена
 func GetExample(example string) (string, int, Example, error) {
 	var err error
 	var ex Example
@@ -144,7 +148,7 @@ func Calc(expression string) (result float64, err error) {
 			return 0, err
 		}
 
-		result, _ = Calculate(example)
+		result, _ = SolveExample(example)
 
 		if ex_str == "end" {
 			break
