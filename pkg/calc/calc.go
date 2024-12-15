@@ -7,6 +7,8 @@ import (
 	"strings"
 )
 
+//TODO: Изменить вывод ошибок strconv.Parse... в вывод ошибок через переменную
+
 type Operator rune
 
 const (
@@ -102,6 +104,9 @@ func GetExample(example string) (string, int, Example, error) {
 	//Нахождение концов двух чисел
 	var exampleLen = len(local_ex)
 	if actionIdx == 0 || actionIdx == exampleLen-1 {
+
+		//TODO: Изменить вывод ошибки на вывод с использованием переменной
+
 		return "", 0, Example{}, errors.New("action in first or lst place")
 	}
 
