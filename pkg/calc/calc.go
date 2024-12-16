@@ -34,6 +34,10 @@ type Example struct {
 	Operation    Operator
 }
 
+func (ex Example) ToString() string {
+	return fmt.Sprint(ex.First_value, ex.Operation, ex.Second_value)
+}
+
 func SolveExample(ex Example) (float64, error) {
 	if ex.Second_value == 0 {
 		return 0, DivideByZero

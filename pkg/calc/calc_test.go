@@ -238,13 +238,13 @@ func TestCalc(t *testing.T) {
 			name:           "unkown operator 1",
 			expression:     "1&1",
 			expected_value: 0,
-			expected_err:   calc.UnkownOperator,
+			expected_err:   calc.ParseError,
 		},
 		{
 			name:           "unkown operator 2",
 			expression:     "1+&1",
 			expected_value: 0,
-			expected_err:   calc.UnkownOperator,
+			expected_err:   calc.ParseError,
 		},
 		{
 			name:           "operation without value",
@@ -256,7 +256,7 @@ func TestCalc(t *testing.T) {
 			name:           "operation without value 2",
 			expression:     "2+2**2",
 			expected_value: 0,
-			expected_err:   calc.OperationWithoutValue,
+			expected_err:   calc.ParseError,
 		},
 		{
 			name:           "without closed bracket",
@@ -276,7 +276,12 @@ func TestCalc(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			got, err := calc.Calc(test.expression)
 
-			if got != test.expected_value || !errors.Is(err, test.expected_err) {
+			if !errors.Is(err, test.expected_err) {
+				t.Errorf("Calc(%s) got %q, but expected %q", test.expression, err, test.expected_err)
+				return
+			}
+
+			if got != test.expected_value {
 				t.Errorf("Calc(%q) = %f, but expected - %f", test.expression, got, test.expected_value)
 			}
 		})
