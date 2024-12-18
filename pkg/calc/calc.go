@@ -7,8 +7,6 @@ import (
 	"strings"
 )
 
-//TODO: Изменить вывод ошибок strconv.Parse... в вывод ошибок через переменную
-
 type Operator rune
 
 const (
@@ -112,10 +110,7 @@ func GetExample(example string) (string, int, Example, error) {
 	//Нахождение концов двух чисел
 	var exampleLen = len(local_ex)
 	if actionIdx == 0 || actionIdx == exampleLen-1 {
-
-		//TODO: Изменить вывод ошибки на вывод с использованием переменной
-
-		return "", 0, Example{}, errors.New("action in first or lst place")
+		return "", 0, Example{}, OperationWithoutValue
 	}
 
 	var err error
@@ -173,7 +168,10 @@ func Calc(expression string) (result float64, err error) {
 			return 0, err
 		}
 
-		result, _ = SolveExample(example)
+		result, err = SolveExample(example)
+		if err != nil {
+			return 0, err
+		}
 
 		if ex_str == "end" {
 			break
@@ -183,5 +181,3 @@ func Calc(expression string) (result float64, err error) {
 	}
 	return
 }
-
-func main() {}
