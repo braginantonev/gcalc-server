@@ -33,10 +33,10 @@ func TestSolveExample(t *testing.T) {
 			expected_err: calc.DivideByZero,
 		},
 		{
-			name:         "unkown operator",
+			name:         "unknown operator",
 			example:      calc.Example{First_value: 1, Second_value: 1, Operation: '&'},
 			expected:     0,
-			expected_err: calc.UnkownOperator,
+			expected_err: calc.ParseError,
 		},
 		{
 			name:         "123 + 10",

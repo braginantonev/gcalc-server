@@ -19,9 +19,8 @@ const (
 
 var (
 	DivideByZero          error = errors.New("divide by zero")
-	UnkownOperator        error = errors.New("unkown operator")
 	ExpressionEmpty       error = errors.New("expression empty")
-	OperationWithoutValue error = errors.New("operation dont have a value")
+	OperationWithoutValue error = errors.New("operation don't have a value")
 	BracketsNotFound      error = errors.New("not found opened or closed bracket")
 	ParseError            error = errors.New("parse error")
 )
@@ -53,7 +52,7 @@ func SolveExample(ex Example) (float64, error) {
 	case Equals:
 		return ex.First_value, nil
 	}
-	return 0, UnkownOperator
+	return 0, ParseError
 }
 
 // * Заменяет выражение на его ответ
