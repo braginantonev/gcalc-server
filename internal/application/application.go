@@ -3,6 +3,7 @@ package application
 import (
 	"encoding/json"
 	"errors"
+	"io"
 	"log/slog"
 	"net/http"
 	"os"
@@ -11,8 +12,15 @@ import (
 )
 
 var (
-	InternalError    error = errors.New("Internal error")
-	RequsetBodyEmpty error = errors.New("Request body empty")
+	InternalError    error    = errors.New("Internal error")
+	RequestBodyEmpty error    = errors.New("Request body empty")
+	CalculatorErrors []*error = []*error{
+		&calc.DivideByZero,
+		&calc.ExpressionEmpty,
+		&calc.OperationWithoutValue,
+		&calc.BracketsNotFound,
+		&calc.ParseError,
+	}
 )
 
 // * -------------------- Config --------------------
@@ -25,9 +33,9 @@ func NewConfig() *Config {
 	cfg.Port = os.Getenv("PORT")
 	if cfg.Port == "" {
 		cfg.Port = "8080"
-		slog.Info("env: \"PORT\" not found. ")
+		slog.Warn("env: \"PORT\" not found. ")
 	}
-	slog.Info("Configure port to ", cfg.Port)
+	slog.Info("Server has been configured successfully")
 	return cfg
 }
 
@@ -41,7 +49,7 @@ func NewApplication() *Application {
 }
 
 func (app Application) Run() error {
-	slog.Info("Start server...")
+	slog.Info("Start server", slog.String("port", app.cfg.Port))
 
 	http.HandleFunc("/api/v1/calculate", RequestEmpty(CalcHandler))
 	err := http.ListenAndServe(":"+app.cfg.Port, nil)
@@ -50,7 +58,6 @@ func (app Application) Run() error {
 		return err
 	}
 
-	slog.Info("Server started with port", app.cfg.Port)
 	return nil
 }
 
@@ -69,20 +76,53 @@ var expression []byte
 func CalcHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	err := json.Unmarshal()
+	resq := Request{}
+	err := json.Unmarshal(expression, &resq)
+	if err != nil {
+		slog.Error("Failed unmarshal expression json.", slog.String("error", err.Error()))
+	}
 
-	result, err := calc.Calc()
+	result, err := calc.Calc(resq.Expression)
+	if err != nil {
+		slog.Error("Failed calculate expression.", slog.String("error", err.Error()))
+
+		isInternalError := true
+		for _, i := range CalculatorErrors {
+			if errors.Is(err, *i) {
+				isInternalError = false
+				break
+			}
+		}
+
+		var resp_json []byte
+		if isInternalError {
+			w.WriteHeader(500)
+			resp_json, _ = json.Marshal(Response{Error: InternalError.Error()})
+		} else {
+			w.WriteHeader(422)
+			resp_json, _ = json.Marshal(Response{Error: err.Error()})
+		}
+		w.Write(resp_json)
+		return
+	}
+
+	slog.Info("Calculation success")
+	resp_json, _ := json.Marshal(Response{Result: result})
+	w.WriteHeader(200)
+	w.Write(resp_json)
 }
 
 func RequestEmpty(fn http.HandlerFunc) http.HandlerFunc {
 	log_failed_conv := func(resp_json string, w http.ResponseWriter) {
 		w.WriteHeader(500)
 		slog.Error("Failed convert error response to json")
-		slog.Debug("expression:", string(expression), "\nresponse json:", string(resp_json))
+		slog.Debug("expression:", string(expression), "\nresponse json:", (resp_json))
 	}
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		n, err := r.Body.Read(expression)
+		var err error
+		expression, err = io.ReadAll(r.Body)
+
 		if err != nil {
 			slog.Error("Failed read request body")
 
@@ -97,15 +137,16 @@ func RequestEmpty(fn http.HandlerFunc) http.HandlerFunc {
 			return
 		}
 
-		if n == 0 {
-			slog.Info("Request body is empty")
-			resp_json, err := json.Marshal(Response{Error: RequsetBodyEmpty.Error()})
+		if len(expression) == 0 {
+			slog.Error("Request body empty")
+
+			resp_json, err := json.Marshal(Response{Error: RequestBodyEmpty.Error()})
 			if err != nil {
 				log_failed_conv(string(resp_json), w)
 				return
 			}
 
-			w.WriteHeader(400)
+			w.WriteHeader(422)
 			w.Write(resp_json)
 			return
 		}
