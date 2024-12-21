@@ -147,7 +147,7 @@ func RequestEmpty(fn http.HandlerFunc) http.HandlerFunc {
 				return
 			}
 
-			w.WriteHeader(http.StatusUnprocessableEntity)
+			w.WriteHeader(http.StatusBadRequest)
 			w.Write(resp_json)
 			return
 		}
