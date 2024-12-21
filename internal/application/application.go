@@ -12,10 +12,11 @@ import (
 )
 
 var (
-	InternalError       error    = errors.New("Internal error")
-	RequestBodyEmpty    error    = errors.New("Request body empty")
-	UnsupportedBodyType error    = errors.New("Unsupported request body type")
-	CalculatorErrors    []*error = []*error{
+	InternalError       error = errors.New("Internal error")
+	RequestBodyEmpty    error = errors.New("Request body empty")
+	UnsupportedBodyType error = errors.New("Unsupported request body type")
+
+	CalculatorErrors []*error = []*error{
 		&calc.DivideByZero,
 		&calc.ExpressionEmpty,
 		&calc.OperationWithoutValue,
@@ -83,7 +84,7 @@ func CalcHandler(w http.ResponseWriter, r *http.Request) {
 		slog.Error("Failed unmarshal expression json.", slog.String("error", err.Error()))
 		resp, _ := json.Marshal(Response{Error: UnsupportedBodyType.Error()})
 
-		w.WriteHeader(415)
+		w.WriteHeader(http.StatusUnsupportedMediaType)
 		w.Write(resp)
 		return
 	}
@@ -102,10 +103,10 @@ func CalcHandler(w http.ResponseWriter, r *http.Request) {
 
 		var resp_json []byte
 		if isInternalError {
-			w.WriteHeader(500)
+			w.WriteHeader(http.StatusInternalServerError)
 			resp_json, _ = json.Marshal(Response{Error: InternalError.Error()})
 		} else {
-			w.WriteHeader(422)
+			w.WriteHeader(http.StatusUnprocessableEntity)
 			resp_json, _ = json.Marshal(Response{Error: err.Error()})
 		}
 		w.Write(resp_json)
@@ -113,14 +114,22 @@ func CalcHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	slog.Info("Calculation success")
-	resp_json, _ := json.Marshal(Response{Result: result})
-	w.WriteHeader(200)
+
+	resp := Response{Result: result}
+	var resp_json []byte
+	if resp.Result != 0 {
+		resp_json, _ = json.Marshal(Response{Result: result})
+	} else {
+		resp_json = []byte("{\"result\":0}")
+	}
+
+	w.WriteHeader(http.StatusOK)
 	w.Write(resp_json)
 }
 
 func RequestEmpty(fn http.HandlerFunc) http.HandlerFunc {
 	log_failed_conv := func(resp_json string, w http.ResponseWriter) {
-		w.WriteHeader(500)
+		w.WriteHeader(http.StatusInternalServerError)
 		slog.Error("Failed convert error response to json")
 		slog.Debug("expression:", string(expression), "\nresponse json:", (resp_json))
 	}
@@ -138,7 +147,7 @@ func RequestEmpty(fn http.HandlerFunc) http.HandlerFunc {
 				return
 			}
 
-			w.WriteHeader(500)
+			w.WriteHeader(http.StatusInternalServerError)
 			w.Write(resp_json)
 			return
 		}
@@ -152,7 +161,7 @@ func RequestEmpty(fn http.HandlerFunc) http.HandlerFunc {
 				return
 			}
 
-			w.WriteHeader(422)
+			w.WriteHeader(http.StatusUnprocessableEntity)
 			w.Write(resp_json)
 			return
 		}
