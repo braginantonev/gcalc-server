@@ -1,5 +1,5 @@
 # gcalc-server
-Http server for calculate complex expressions
+A web service that accepts a complex expression in the form of JSON and returns the result. Available actions: +, -, *, /. And the precedence operators ().
 
 ## Installation
 1. Install [Go](https://go.dev/doc/install)
@@ -8,8 +8,8 @@ Http server for calculate complex expressions
 
 ## Usage
 1. Go to installed repository
-2. For run http server: ```go run cmd/main.go```
-3. To stop server use ```Ctrl+C```
+2. For run http server: ```go run cmd/main.go``` (For Windows use Git Bash or WSL)
+4. To stop server use ```Ctrl+C```
 
 ## Documentation
 For documentation on the library, usage examples and possible errors, follow the link: 
