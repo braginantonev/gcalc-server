@@ -20,7 +20,7 @@ var (
 		&calc.ExpressionEmpty,
 		&calc.OperationWithoutValue,
 		&calc.BracketsNotFound,
-		&calc.ParseError,
+		&calc.ExpressionIncorrect,
 	}
 )
 
