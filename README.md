@@ -13,6 +13,7 @@ Http server for calculate complex expressions
 ## Usage
 1. Go to installed repository
 2. For run http server: ```go run cmd/main.go```
+3. To stop server use ```Ctrl+C```
 
 ## Documentation
 For documentation on the library, usage examples and possible errors, follow the link: 
