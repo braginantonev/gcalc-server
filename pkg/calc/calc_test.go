@@ -36,7 +36,7 @@ func TestSolveExample(t *testing.T) {
 			name:         "unknown operator",
 			example:      calc.Example{First_value: 1, Second_value: 1, Operation: '&'},
 			expected:     0,
-			expected_err: calc.ParseError,
+			expected_err: calc.ExpressionIncorrect,
 		},
 		{
 			name:         "123 + 10",
@@ -238,13 +238,13 @@ func TestCalc(t *testing.T) {
 			name:           "unkown operator 1",
 			expression:     "1&1",
 			expected_value: 0,
-			expected_err:   calc.ParseError,
+			expected_err:   calc.ExpressionIncorrect,
 		},
 		{
 			name:           "unkown operator 2",
 			expression:     "1+&1",
 			expected_value: 0,
-			expected_err:   calc.ParseError,
+			expected_err:   calc.ExpressionIncorrect,
 		},
 		{
 			name:           "operation without value",
@@ -256,7 +256,7 @@ func TestCalc(t *testing.T) {
 			name:           "operation without value 2",
 			expression:     "2+2**2",
 			expected_value: 0,
-			expected_err:   calc.ParseError,
+			expected_err:   calc.ExpressionIncorrect,
 		},
 		{
 			name:           "without closed bracket",
