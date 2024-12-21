@@ -12,9 +12,10 @@ import (
 )
 
 var (
-	InternalError    error    = errors.New("Internal error")
-	RequestBodyEmpty error    = errors.New("Request body empty")
-	CalculatorErrors []*error = []*error{
+	InternalError       error    = errors.New("Internal error")
+	RequestBodyEmpty    error    = errors.New("Request body empty")
+	UnsupportedBodyType error    = errors.New("Unsupported request body type")
+	CalculatorErrors    []*error = []*error{
 		&calc.DivideByZero,
 		&calc.ExpressionEmpty,
 		&calc.OperationWithoutValue,
@@ -80,6 +81,11 @@ func CalcHandler(w http.ResponseWriter, r *http.Request) {
 	err := json.Unmarshal(expression, &resq)
 	if err != nil {
 		slog.Error("Failed unmarshal expression json.", slog.String("error", err.Error()))
+		resp, _ := json.Marshal(Response{Error: UnsupportedBodyType.Error()})
+
+		w.WriteHeader(415)
+		w.Write(resp)
+		return
 	}
 
 	result, err := calc.Calc(resq.Expression)
