@@ -13,4 +13,6 @@ A web service that accepts a complex expression in the form of JSON and returns 
 
 ## Documentation
 For documentation on the library, usage examples and possible errors, follow the link: 
-https://github.com/Antibrag/gcalc-server/blob/main/docs/en/index.md
+* [Русская](https://github.com/Antibrag/gcalc-server/blob/main/docs/ru/index.md)
+* [English](https://github.com/Antibrag/gcalc-server/blob/main/docs/en/index.md)
+
