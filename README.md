@@ -2,13 +2,9 @@
 Http server for calculate complex expressions
 
 ## Installation
-1. Install Golang
-
-    Follow the instructions from the official website:
-    https://go.dev/doc/install
-     
-2. Clone repository:
-    ```git clone https://github.com/Antibrag/gcalc-server```
+1. Install [Go](https://go.dev/doc/install)
+2. Install [Git](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git)
+3. Clone repository: ```git clone https://github.com/Antibrag/gcalc-server```
 
 ## Usage
 1. Go to installed repository
@@ -17,6 +13,4 @@ Http server for calculate complex expressions
 
 ## Documentation
 For documentation on the library, usage examples and possible errors, follow the link: 
-https://github.com/Antibrag/gcalc-server/blob/main/docs/getting_started.md
-
-
+https://github.com/Antibrag/gcalc-server/blob/main/docs/en/index.md
