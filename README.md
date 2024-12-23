@@ -8,11 +8,11 @@ A web service that accepts a complex expression in the form of JSON and returns 
 
 ## Usage
 1. Go to installed repository
-2. For run http server: ```go run cmd/main.go``` (For Windows use Git Bash or WSL)
-3. If you want start server on anouther port:
+2. If you want start server on anouther port:
    1. For windows: ```sets PORT=<your_port>```
    2. For linux/mac: ```export PORT=<your_port>```
-5. To stop server use ```Ctrl+C```
+3. For run http server: ```go run cmd/main.go``` (For Windows use Git Bash or WSL)
+4. To stop server use ```Ctrl+C```
 
 ## Documentation
 For documentation on the library, usage examples and possible errors, follow the link: 
