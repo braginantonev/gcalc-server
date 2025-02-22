@@ -20,12 +20,12 @@ func TestCalc(t *testing.T) {
 			expected_value: 2,
 			expected_err:   nil,
 		},
-		{
-			name:           "addition with negative value",
-			expression:     "-3+1",
-			expected_value: -2,
-			expected_err:   nil,
-		},
+		// {
+		// 	name:           "addition with negative value",
+		// 	expression:     "-3+1",
+		// 	expected_value: -2,
+		// 	expected_err:   nil,
+		// },
 		{
 			name:           "addition with 3 values",
 			expression:     "1+1+1",

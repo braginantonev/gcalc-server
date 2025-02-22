@@ -16,37 +16,37 @@ func TestSolveExample(t *testing.T) {
 	}{
 		{
 			name:         "1 + 1",
-			example:      calc.Example{First_value: 1, Second_value: 1, Operation: calc.Plus},
+			example:      calc.Example{FirstArgument: calc.Argument{Value: 1}, SecondArgument: calc.Argument{Value: 1}, Operation: calc.Plus},
 			expected:     2,
 			expected_err: nil,
 		},
 		{
 			name:         "1 * 1",
-			example:      calc.Example{First_value: 1, Second_value: 1, Operation: calc.Multiply},
+			example:      calc.Example{FirstArgument: calc.Argument{Value: 1}, SecondArgument: calc.Argument{Value: 1}, Operation: calc.Multiply},
 			expected:     1,
 			expected_err: nil,
 		},
 		{
 			name:         "divide by zero",
-			example:      calc.Example{First_value: 0, Second_value: 0, Operation: calc.Division},
+			example:      calc.Example{FirstArgument: calc.Argument{Value: 0}, SecondArgument: calc.Argument{Value: 0}, Operation: calc.Division},
 			expected:     0,
 			expected_err: calc.ErrDivideByZero,
 		},
 		{
 			name:         "unknown operator",
-			example:      calc.Example{First_value: 1, Second_value: 1, Operation: '&'},
+			example:      calc.Example{FirstArgument: calc.Argument{Value: 1}, SecondArgument: calc.Argument{Value: 0}, Operation: '&'},
 			expected:     0,
 			expected_err: calc.ErrExpressionIncorrect,
 		},
 		{
 			name:         "123 + 10",
-			example:      calc.Example{First_value: 123, Second_value: 10, Operation: calc.Plus},
+			example:      calc.Example{FirstArgument: calc.Argument{Value: 123}, SecondArgument: calc.Argument{Value: 10}, Operation: calc.Plus},
 			expected:     133,
 			expected_err: nil,
 		},
 		{
 			name:         "equal(1)",
-			example:      calc.Example{First_value: 1, Second_value: 52, Operation: calc.Equals},
+			example:      calc.Example{FirstArgument: calc.Argument{Value: 1}, Operation: calc.Equals},
 			expected:     1,
 			expected_err: nil,
 		},

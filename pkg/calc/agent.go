@@ -1,21 +1,21 @@
 package calc
 
 func SolveExample(ex Example) (float64, error) {
-	if ex.Second_value == 0 {
+	if ex.SecondArgument.Value == 0 && ex.Operation == Division {
 		return 0, ErrDivideByZero
 	}
 
 	switch ex.Operation {
 	case Plus:
-		return ex.First_value + ex.Second_value, nil
+		return ex.FirstArgument.Value + ex.SecondArgument.Value, nil
 	case Minus:
-		return ex.First_value - ex.Second_value, nil
+		return ex.FirstArgument.Value - ex.SecondArgument.Value, nil
 	case Multiply:
-		return ex.First_value * ex.Second_value, nil
+		return ex.FirstArgument.Value * ex.SecondArgument.Value, nil
 	case Division:
-		return ex.First_value / ex.Second_value, nil
+		return ex.FirstArgument.Value / ex.SecondArgument.Value, nil
 	case Equals:
-		return ex.First_value, nil
+		return ex.FirstArgument.Value, nil
 	}
 	return 0, ErrExpressionIncorrect
 }

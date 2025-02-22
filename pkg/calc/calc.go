@@ -4,15 +4,22 @@ import (
 	"fmt"
 )
 
+type Argument struct {
+	Value      float64
+	IsExpected bool
+}
+
 type Example struct {
-	First_value  float64
-	Second_value float64
-	Operation    Operator
+	FirstArgument  Argument
+	SecondArgument Argument
+	Operation      Operator
 }
 
 func (ex Example) ToString() string {
-	return fmt.Sprint(ex.First_value, ex.Operation, ex.Second_value)
+	return fmt.Sprint(ex.FirstArgument.Value, ex.Operation, ex.SecondArgument.Value)
 }
+
+var ExamplesQueue []Example
 
 func Calc(expression string) (result float64, err error) {
 	if expression == "" {
