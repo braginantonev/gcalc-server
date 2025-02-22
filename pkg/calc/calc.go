@@ -16,7 +16,7 @@ func (ex Example) ToString() string {
 
 func Calc(expression string) (result float64, err error) {
 	if expression == "" {
-		return 0, ExpressionEmpty
+		return 0, ErrExpressionEmpty
 	}
 
 	for {

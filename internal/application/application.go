@@ -68,7 +68,7 @@ func CalcHandler(w http.ResponseWriter, r *http.Request) {
 	err := json.Unmarshal(expression, &resq)
 	if err != nil {
 		slog.Error("Failed unmarshal expression json.", slog.String("error", err.Error()))
-		resp, _ := json.Marshal(Response{Error: UnsupportedBodyType.Error()})
+		resp, _ := json.Marshal(Response{Error: ErrUnsupportedBodyType.Error()})
 
 		w.WriteHeader(http.StatusUnsupportedMediaType)
 		w.Write(resp)
@@ -90,7 +90,7 @@ func CalcHandler(w http.ResponseWriter, r *http.Request) {
 		var resp_json []byte
 		if isInternalError {
 			w.WriteHeader(http.StatusInternalServerError)
-			resp_json, _ = json.Marshal(Response{Error: InternalError.Error()})
+			resp_json, _ = json.Marshal(Response{Error: ErrInternalError.Error()})
 		} else {
 			w.WriteHeader(http.StatusUnprocessableEntity)
 			resp_json, _ = json.Marshal(Response{Error: err.Error()})
@@ -141,7 +141,7 @@ func RequestEmpty(fn http.HandlerFunc) http.HandlerFunc {
 		if len(expression) == 0 {
 			slog.Error("Request body empty")
 
-			resp_json, err := json.Marshal(Response{Error: RequestBodyEmpty.Error()})
+			resp_json, err := json.Marshal(Response{Error: ErrRequestBodyEmpty.Error()})
 			if err != nil {
 				log_failed_conv(string(resp_json), w)
 				return

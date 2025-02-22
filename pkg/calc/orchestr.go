@@ -24,7 +24,7 @@ func GetExample(example string) (string, int, Example, error) {
 		}
 
 		if (begin == -1 && end != -1) || (begin != -1 && end == -1) {
-			return "", 0, Example{}, BracketsNotFound
+			return "", 0, Example{}, ErrBracketsNotFound
 		}
 
 		local_ex = local_ex[begin : end+1]
@@ -39,19 +39,19 @@ func GetExample(example string) (string, int, Example, error) {
 	} else if strings.ContainsAny(local_ex, "()") {
 		value, err := strconv.ParseFloat(local_ex[1:len(local_ex)-1], 64)
 		if err != nil {
-			return "", 0, Example{}, ExpressionIncorrect
+			return "", 0, Example{}, ErrExpressionIncorrect
 		}
 		return local_ex[:], strings.IndexRune(example, rune(local_ex[0])), Example{First_value: value, Second_value: 52, Operation: Equals}, nil //52 - по рофлу, чтобы при калькулировании не возникала ошибка. Крч костыль
 	} else {
 		value, err := strconv.ParseFloat(local_ex, 64)
 		if err != nil {
-			return "", 0, Example{}, ExpressionIncorrect
+			return "", 0, Example{}, ErrExpressionIncorrect
 		}
 		return "end", 0, Example{First_value: value, Second_value: 52, Operation: Equals}, nil
 	}
 
 	if actionIdx == 0 || actionIdx == len(local_ex)-1 {
-		return "", 0, Example{}, OperationWithoutValue
+		return "", 0, Example{}, ErrOperationWithoutValue
 	}
 
 	ex.Operation = Operator(local_ex[actionIdx])
@@ -59,7 +59,7 @@ func GetExample(example string) (string, int, Example, error) {
 	// Нахождение концов двух чисел
 	var exampleLen = len(local_ex)
 	if actionIdx == 0 || actionIdx == exampleLen-1 {
-		return "", 0, Example{}, OperationWithoutValue
+		return "", 0, Example{}, ErrOperationWithoutValue
 	}
 
 	var err error
@@ -67,14 +67,14 @@ func GetExample(example string) (string, int, Example, error) {
 		if strings.ContainsRune("+-/*()", rune(local_ex[i])) {
 			ex.First_value, err = strconv.ParseFloat(local_ex[i+1:actionIdx], 64)
 			if err != nil {
-				return "", 0, Example{}, ExpressionIncorrect
+				return "", 0, Example{}, ErrExpressionIncorrect
 			}
 			begin = i + 1
 			break
 		} else if i == 0 {
 			ex.First_value, err = strconv.ParseFloat(local_ex[i:actionIdx], 64)
 			if err != nil {
-				return "", 0, Example{}, ExpressionIncorrect
+				return "", 0, Example{}, ErrExpressionIncorrect
 			}
 			begin = i
 			break
@@ -85,14 +85,14 @@ func GetExample(example string) (string, int, Example, error) {
 		if strings.ContainsRune("+-/*()", rune(local_ex[i])) {
 			ex.Second_value, err = strconv.ParseFloat(local_ex[actionIdx+1:i], 64)
 			if err != nil {
-				return "", 0, Example{}, ExpressionIncorrect
+				return "", 0, Example{}, ErrExpressionIncorrect
 			}
 			end = i
 			break
 		} else if i+1 == exampleLen {
 			ex.Second_value, err = strconv.ParseFloat(local_ex[actionIdx+1:i+1], 64)
 			if err != nil {
-				return "", 0, Example{}, ExpressionIncorrect
+				return "", 0, Example{}, ErrExpressionIncorrect
 			}
 			end = exampleLen
 			break

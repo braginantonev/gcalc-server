@@ -2,7 +2,7 @@ package calc
 
 func SolveExample(ex Example) (float64, error) {
 	if ex.Second_value == 0 {
-		return 0, DivideByZero
+		return 0, ErrDivideByZero
 	}
 
 	switch ex.Operation {
@@ -17,5 +17,5 @@ func SolveExample(ex Example) (float64, error) {
 	case Equals:
 		return ex.First_value, nil
 	}
-	return 0, ExpressionIncorrect
+	return 0, ErrExpressionIncorrect
 }
