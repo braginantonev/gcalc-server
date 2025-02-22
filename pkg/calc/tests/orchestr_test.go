@@ -72,11 +72,11 @@ func TestGetExample(t *testing.T) {
 
 	for _, test := range cases {
 		t.Run(test.name, func(t *testing.T) {
-			got, _, ex, _ := calc.GetExample(test.example)
-			value, _ := calc.SolveExample(ex)
-			if got != test.expected_str || value != test.expected_value {
-				t.Logf("GetExample(%q).ex = %#v", test.example, ex)
-				t.Errorf("GetExample(%q) = (%q, %f), but expected: (%q, %f)", test.example, got, value, test.expected_str, test.expected_value)
+			_, gotExample, _ := calc.GetExample(test.example)
+			value, _ := calc.SolveExample(gotExample)
+			if gotExample.String != test.expected_str || value != test.expected_value {
+				t.Logf("GetExample(%q).ex = %#v", test.example, gotExample)
+				t.Errorf("GetExample(%q) = (%q, %f), but expected: (%q, %f)", test.example, gotExample.String, value, test.expected_str, test.expected_value)
 			}
 		})
 	}
@@ -107,11 +107,11 @@ func TestEraseExample(t *testing.T) {
 
 	for _, test := range cases {
 		t.Run(test.name, func(t *testing.T) {
-			erase_str, pri_idx, ex, _ := calc.GetExample(test.example)
-			answ, _ := calc.SolveExample(ex)
-			got := calc.EraseExample(test.example, erase_str, pri_idx, answ)
+			pri_idx, gotExample, _ := calc.GetExample(test.example)
+			//answ, _ := calc.SolveExample(ex)
+			got := calc.EraseExample(test.example, gotExample.String, pri_idx, gotExample.Id)
 			if got != test.expected_str {
-				t.Errorf("EraseExample(%q, %q, %d, %f) = %q, but expected: %q", test.example, erase_str, pri_idx, answ, got, test.expected_str)
+				t.Errorf("EraseExample(%q, %q, %d, %d) = %q, but expected: %q", test.example, gotExample.String, pri_idx, gotExample.Id, got, test.expected_str)
 			}
 		})
 	}

@@ -1,9 +1,5 @@
 package calc
 
-import (
-	"fmt"
-)
-
 type Status string
 
 const (
@@ -24,11 +20,8 @@ type Example struct {
 	SecondArgument Argument
 	Operation      Operator
 	Status         Status
+	String         string
 	Answer         float64
-}
-
-func (ex Example) ToString() string {
-	return fmt.Sprint(ex.FirstArgument.Value, ex.Operation, ex.SecondArgument.Value)
 }
 
 func Calc(expression string) (result float64, err error) {
