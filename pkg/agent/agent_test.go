@@ -1,9 +1,10 @@
-package calc_test
+package agent_test
 
 import (
 	"errors"
 	"testing"
 
+	"github.com/Antibrag/gcalc-server/pkg/agent"
 	"github.com/Antibrag/gcalc-server/pkg/calc"
 )
 
@@ -54,7 +55,7 @@ func TestSolveExample(t *testing.T) {
 
 	for _, test := range cases {
 		t.Run(test.name, func(t *testing.T) {
-			got, err := calc.SolveExample(test.example)
+			got, err := agent.SolveExample(test.example)
 			if got != test.expected || !errors.Is(err, test.expected_err) {
 				t.Errorf("SolveExample(%#v) = (%f, %q), but expected: (%f, %q)", test.example, got, err, test.expected, test.expected_err)
 			}

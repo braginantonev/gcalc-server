@@ -12,6 +12,7 @@ import (
 )
 
 // * -------------------- Config --------------------
+
 type Config struct {
 	Port string
 }
@@ -28,6 +29,7 @@ func NewConfig() *Config {
 }
 
 // * ------------------- Application --------------------
+
 type Application struct {
 	cfg *Config
 }
@@ -50,6 +52,7 @@ func (app Application) Run() error {
 }
 
 // * ------------------- HTTP Server --------------------
+
 type Request struct {
 	Expression string `json:"expression"`
 }

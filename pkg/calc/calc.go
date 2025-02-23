@@ -11,17 +11,18 @@ const (
 
 type Argument struct {
 	Value    float64
-	Expected int // Id example; wait while status - not complete
+	Expected string // Id example; wait while status - not complete
 }
 
 type Example struct {
-	Id             int
+	Id             string
 	FirstArgument  Argument
 	SecondArgument Argument
 	Operation      Operator
 	Status         Status
 	String         string
 	Answer         float64
+	AnswerChannel  chan float64
 }
 
 func Calc(expression string) (result float64, err error) {

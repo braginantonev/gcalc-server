@@ -8,4 +8,5 @@ var (
 	ErrOperationWithoutValue error = errors.New("operation don't have a value")
 	ErrBracketsNotFound      error = errors.New("not found opened or closed bracket")
 	ErrExpressionIncorrect   error = errors.New("expression incorrect")
+	ErrInternalTaskError     error = errors.New("internal task error")
 )
