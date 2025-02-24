@@ -2,6 +2,7 @@ package orchestrator_test
 
 import (
 	"errors"
+	"fmt"
 	"reflect"
 	"testing"
 
@@ -117,7 +118,11 @@ func TestEraseExample(t *testing.T) {
 	}
 }
 
-func TestGetTasksQueue(t *testing.T) {
+func TestAddExpression(t *testing.T) {
+
+}
+
+func TestSetTasksQueue(t *testing.T) {
 	tests := []struct {
 		name           string
 		expression     string
@@ -129,7 +134,7 @@ func TestGetTasksQueue(t *testing.T) {
 			expression: "1+1",
 			expected_queue: []calc.Example{
 				{
-					Id:             "1_0",
+					Id:             "0_0",
 					FirstArgument:  calc.Argument{Value: 1},
 					SecondArgument: calc.Argument{Value: 1},
 					Operation:      calc.Plus,
@@ -162,32 +167,32 @@ func TestGetTasksQueue(t *testing.T) {
 			},
 		},
 		{
-			name:       "1*(1+1)+1",
-			expression: "1*(1+1)+1",
+			name:       "1*(2*1)+1",
+			expression: "1*(2*1)+1",
 			expected_queue: []calc.Example{
 				{
-					Id:             "1_0",
-					FirstArgument:  calc.Argument{Value: 1},
+					Id:             "2_0",
+					FirstArgument:  calc.Argument{Value: 2},
 					SecondArgument: calc.Argument{Value: 1},
-					Operation:      calc.Plus,
-					Status:         calc.StatusBacklog,
-					String:         "1+1",
-				},
-				{
-					Id:             "1_1",
-					FirstArgument:  calc.Argument{Value: 1},
-					SecondArgument: calc.Argument{Expected: "1_0"},
 					Operation:      calc.Multiply,
 					Status:         calc.StatusBacklog,
-					String:         "1*id:1_0",
+					String:         "2*1",
 				},
 				{
-					Id:             "1_2",
-					FirstArgument:  calc.Argument{Expected: "1_1"},
+					Id:             "2_1",
+					FirstArgument:  calc.Argument{Value: 1},
+					SecondArgument: calc.Argument{Expected: "2_0"},
+					Operation:      calc.Multiply,
+					Status:         calc.StatusBacklog,
+					String:         "1*id:2_0",
+				},
+				{
+					Id:             "2_2",
+					FirstArgument:  calc.Argument{Expected: "2_1"},
 					SecondArgument: calc.Argument{Value: 1},
 					Operation:      calc.Plus,
 					Status:         calc.StatusBacklog,
-					String:         "id:1_1+1",
+					String:         "id:2_1+1",
 				},
 			},
 		},
@@ -196,7 +201,7 @@ func TestGetTasksQueue(t *testing.T) {
 			expression: "1/0",
 			expected_queue: []calc.Example{
 				{
-					Id:             "1_0",
+					Id:             "3_0",
 					FirstArgument:  calc.Argument{Value: 1},
 					SecondArgument: calc.Argument{Value: 0},
 					Operation:      calc.Division,
@@ -207,9 +212,17 @@ func TestGetTasksQueue(t *testing.T) {
 		},
 	}
 
-	for _, test := range tests {
+	for i, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			gotQueue, gotErr := orchestrator.GetTasksQueue(test.expression)
+			gotErr := orchestrator.AddExpression(test.expression)
+			ex, err := orchestrator.GetExpression(fmt.Sprint(i))
+			if err != nil {
+				t.Error(err)
+			}
+			t.Log(ex)
+
+			gotQueue := ex.TasksQueue
+
 			if !errors.Is(gotErr, test.expected_err) {
 				t.Log("got:", gotQueue)
 				t.Error("expected:", test.expected_err, "but got:", gotErr)
@@ -217,7 +230,7 @@ func TestGetTasksQueue(t *testing.T) {
 			}
 
 			if !reflect.DeepEqual(test.expected_queue, gotQueue) {
-				t.Log("got:", gotQueue, "\nbut expected:", test.expected_queue)
+				t.Log("got:", gotQueue, "but expected:", test.expected_queue)
 				t.Error()
 			}
 		})
