@@ -3,6 +3,7 @@ package calc
 type Status string
 
 const (
+	StatusAnalyze         Status = "analyze"
 	StatusBacklog         Status = "backlog"
 	StatusIsWaitingValues Status = "in waiting values"
 	StatusInProgress      Status = "in progress"
