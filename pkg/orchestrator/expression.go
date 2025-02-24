@@ -85,6 +85,34 @@ func GetExpression(id string) (Expression, error) {
 	return Expression{}, ErrExpressionNotFound
 }
 
+// TODO: Написать тесты
 func GetExpressionsQueue() []Expression {
 	return expressionsQueue
+}
+
+// TODO: Написать тесты
+func GetTask(id string) (calc.Example, error) {
+	if id == "" {
+		exp, err := GetExpression("")
+		if err != nil {
+			return calc.Example{}, err
+		}
+
+		for _, example := range exp.TasksQueue {
+			if example.Status == calc.StatusBacklog {
+				return example, nil
+			}
+		}
+		return calc.Example{}, ErrEOQ
+	}
+
+	for _, exp := range expressionsQueue {
+		for _, example := range exp.TasksQueue {
+			if example.Id == id {
+				return example, nil
+			}
+		}
+	}
+
+	return calc.Example{}, ErrExpressionNotFound
 }

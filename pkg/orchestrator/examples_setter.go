@@ -7,9 +7,6 @@ import (
 	"github.com/Antibrag/gcalc-server/pkg/calc"
 )
 
-//TODO: Добавить функцию GetTask
-/////TODO: Пофиксить тесты в setTasksQueue
-
 // Получает строку с выражением
 func GetExample(example string) (calc.Example, int, error) {
 	var ex calc.Example
