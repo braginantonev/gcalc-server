@@ -1,45 +1,14 @@
 package orchestrator
 
 import (
-	"fmt"
 	"strconv"
 	"strings"
 
 	"github.com/Antibrag/gcalc-server/pkg/calc"
 )
 
-const END_STR = "end"
-
-func GetTasksQueue(expression string) ([]calc.Example, error) {
-	var tasksQueue []calc.Example
-
-	if expression == "" {
-		return nil, calc.ErrExpressionEmpty
-	}
-
-	for {
-		example, priority_idx, error := GetExample(expression)
-		if error != nil {
-			return nil, error
-		}
-
-		if example.String == END_STR {
-			return tasksQueue, nil
-		}
-
-		if example.Operation == calc.Equals {
-			expression = EraseExample(expression, example.String, priority_idx, tasksQueue[len(tasksQueue)-1].Id)
-			continue
-		}
-
-		//! "1_" поставлен в качестве заглушки, пока не будет реализованна очередь выражений
-		example.Id = "1_" + fmt.Sprint(len(tasksQueue))
-		example.Status = calc.StatusBacklog
-		tasksQueue = append(tasksQueue, example)
-
-		expression = EraseExample(expression, example.String, priority_idx, example.Id)
-	}
-}
+//TODO: Добавить функцию GetTask
+/////TODO: Пофиксить тесты в setTasksQueue
 
 // Получает строку с выражением
 func GetExample(example string) (calc.Example, int, error) {
