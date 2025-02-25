@@ -19,10 +19,6 @@ type Expression struct {
 }
 
 func (expression *Expression) setTasksQueue() error {
-	if expression.String == "" {
-		return calc.ErrExpressionEmpty
-	}
-
 	expressionStr := expression.String
 
 	for range 5 {
@@ -52,6 +48,10 @@ func (expression *Expression) setTasksQueue() error {
 }
 
 func AddExpression(expression string) error {
+	if expression == "" {
+		return calc.ErrExpressionEmpty
+	}
+
 	ex := Expression{
 		Id:     fmt.Sprint(len(expressionsQueue)),
 		Status: calc.StatusAnalyze,
