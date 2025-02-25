@@ -75,6 +75,7 @@ func GetExample(example string) (calc.Example, int, error) {
 	convertArgument := func(arg *calc.Argument, str string) (err error) {
 		if strings.Contains(str, "id:") {
 			arg.Expected = str[3:]
+			ex.Status = calc.StatusIsWaitingValues
 		} else {
 			arg.Value, err = strconv.ParseFloat(str, 64)
 		}
