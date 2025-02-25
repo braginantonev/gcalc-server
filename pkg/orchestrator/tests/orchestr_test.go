@@ -122,6 +122,92 @@ func TestAddExpression(t *testing.T) {
 
 }
 
+func TestGetExpressionsQueue(t *testing.T) {
+	tests := []struct {
+		name           string
+		expression     string
+		expected_queue []orchestrator.Expression
+		expected_err   error
+	}{
+		{
+			name:         "error",
+			expression:   "",
+			expected_err: calc.ErrExpressionEmpty,
+		},
+		{
+			name:       "1 expression",
+			expression: "1+1",
+			expected_queue: []orchestrator.Expression{
+				{
+					Id:     "0",
+					Status: calc.StatusBacklog,
+					String: "1+1",
+					TasksQueue: []calc.Example{
+						{
+							Id:             "0_0",
+							FirstArgument:  calc.Argument{Value: 1},
+							SecondArgument: calc.Argument{Value: 1},
+							Operation:      calc.Plus,
+							String:         "1+1",
+							Status:         calc.StatusBacklog,
+						},
+					},
+				},
+			},
+		},
+		{
+			name:       "2 expressions",
+			expression: "6-5",
+			expected_queue: []orchestrator.Expression{
+				{
+					Id:     "0",
+					Status: calc.StatusBacklog,
+					String: "1+1",
+					TasksQueue: []calc.Example{
+						{
+							Id:             "0_0",
+							FirstArgument:  calc.Argument{Value: 1},
+							SecondArgument: calc.Argument{Value: 1},
+							Operation:      calc.Plus,
+							String:         "1+1",
+							Status:         calc.StatusBacklog,
+						},
+					},
+				},
+				{
+					Id:     "1",
+					Status: calc.StatusBacklog,
+					String: "6-5",
+					TasksQueue: []calc.Example{
+						{
+							Id:             "1_0",
+							FirstArgument:  calc.Argument{Value: 6},
+							SecondArgument: calc.Argument{Value: 5},
+							Operation:      calc.Minus,
+							String:         "6-5",
+							Status:         calc.StatusBacklog,
+						},
+					},
+				},
+			},
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			gotErr := orchestrator.AddExpression(test.expression)
+			if !errors.Is(gotErr, test.expected_err) {
+				t.Error("expected error:", test.expected_err, "but expected:", gotErr)
+			}
+
+			gotQueue := orchestrator.GetExpressionsQueue()
+			if !reflect.DeepEqual(test.expected_queue, gotQueue) {
+				t.Error("got:", gotQueue, "but expected:", test.expected_queue)
+			}
+		})
+	}
+}
+
 func TestSetTasksQueue(t *testing.T) {
 	tests := []struct {
 		name           string
