@@ -2,9 +2,12 @@ package orchestrator
 
 import (
 	"fmt"
+	"slices"
 
 	"github.com/Antibrag/gcalc-server/pkg/calc"
 )
+
+//! Оставить как минимум один поток для выполнения анализа
 
 const END_STR = "end"
 
@@ -38,7 +41,11 @@ func (expression *Expression) setTasksQueue() error {
 		}
 
 		example.Id = expression.Id + "_" + fmt.Sprint(len(expression.TasksQueue))
-		example.Status = calc.StatusBacklog
+
+		if example.Status != calc.StatusIsWaitingValues {
+			example.Status = calc.StatusBacklog
+		}
+
 		expression.TasksQueue = append(expression.TasksQueue, example)
 
 		expressionStr = EraseExample(expressionStr, example.String, priority_idx, example.Id)
@@ -69,7 +76,7 @@ func AddExpression(expression string) error {
 func GetExpression(id string) (Expression, error) {
 	if id == "" {
 		for _, ex := range expressionsQueue {
-			if ex.Status == calc.StatusBacklog {
+			if ex.Status == calc.StatusInProgress || ex.Status == calc.StatusBacklog {
 				return ex, nil
 			}
 		}
@@ -85,7 +92,6 @@ func GetExpression(id string) (Expression, error) {
 	return Expression{}, ErrExpressionNotFound
 }
 
-// TODO: Написать тесты
 func GetExpressionsQueue() []Expression {
 	return expressionsQueue
 }
@@ -100,6 +106,7 @@ func GetTask(id string) (calc.Example, error) {
 
 		for _, example := range exp.TasksQueue {
 			if example.Status == calc.StatusBacklog {
+				example.Status = calc.StatusInProgress
 				return example, nil
 			}
 		}
@@ -114,5 +121,52 @@ func GetTask(id string) (calc.Example, error) {
 		}
 	}
 
-	return calc.Example{}, ErrExpressionNotFound
+	return calc.Example{}, ErrTaskNotFound
 }
+
+// TODO: Добавить тесты
+func SetExampleResult(id string, result float64) error {
+	example, err := GetTask(id)
+	if err != nil {
+		return err
+	}
+
+	example.Answer = result
+	example.Status = calc.StatusComplete
+
+	for _, exp := range expressionsQueue {
+		exampleIdx := slices.Index(exp.TasksQueue, example)
+		if exampleIdx == -1 {
+			continue
+		}
+
+		if exampleIdx == len(exp.TasksQueue)-1 {
+			exp.Result = result
+			exp.Status = calc.StatusComplete
+			return nil
+		}
+
+		// Return true - if argument excepted value
+		delExpectation := func(arg *calc.Argument) bool {
+			if arg.Expected == example.Id {
+				arg.Value = result
+				arg.Expected = ""
+				exp.Status = calc.StatusBacklog
+				return true
+			}
+			return false
+		}
+
+		if isExpected := delExpectation(&exp.TasksQueue[exampleIdx+1].FirstArgument); !isExpected {
+			if isExpected = delExpectation(&exp.TasksQueue[exampleIdx+1].SecondArgument); !isExpected {
+				return ErrExpectation
+			}
+		}
+	}
+
+	return nil
+}
+
+// TODO: Написать функцию принятия результата вычисления задания
+// TODO: При получении результата сменить статус примера, который ожидает данные, на StatusBacklog
+// TODO: Также проверяется, если все задачи примера выполнены, то примеру выставляется StatusComplete
