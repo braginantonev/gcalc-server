@@ -2,7 +2,7 @@ package orchestrator
 
 import (
 	"fmt"
-	"slices"
+	"strings"
 
 	"github.com/Antibrag/gcalc-server/pkg/calc"
 )
@@ -134,35 +134,45 @@ func SetExampleResult(id string, result float64) error {
 	example.Answer = result
 	example.Status = calc.StatusComplete
 
-	for _, exp := range expressionsQueue {
-		exampleIdx := slices.Index(exp.TasksQueue, example)
-		if exampleIdx == -1 {
-			continue
-		}
+	low_line_idx := strings.IndexRune(example.Id, '_')
+	exp, err := GetExpression(example.Id[:low_line_idx])
+	if err != nil {
+		return err
+	}
 
-		if exampleIdx == len(exp.TasksQueue)-1 {
-			exp.Result = result
-			exp.Status = calc.StatusComplete
-			return nil
-		}
-
-		// Return true - if argument excepted value
-		delExpectation := func(arg *calc.Argument) bool {
-			if arg.Expected == example.Id {
-				arg.Value = result
-				arg.Expected = ""
-				exp.Status = calc.StatusBacklog
-				return true
-			}
-			return false
-		}
-
-		if isExpected := delExpectation(&exp.TasksQueue[exampleIdx+1].FirstArgument); !isExpected {
-			if isExpected = delExpectation(&exp.TasksQueue[exampleIdx+1].SecondArgument); !isExpected {
-				return ErrExpectation
-			}
+	var exampleIdx int
+	for i, example := range exp.TasksQueue {
+		if example.Id == id {
+			exampleIdx = i
+			break
 		}
 	}
+
+	if exampleIdx == len(exp.TasksQueue)-1 {
+		exp.Result = result
+		exp.Status = calc.StatusComplete
+		exp.TasksQueue[exampleIdx] = example
+		return nil
+	}
+
+	// Return true - if argument excepted value
+	delExpectation := func(arg *calc.Argument) bool {
+		if arg.Expected == example.Id {
+			arg.Value = result
+			arg.Expected = ""
+			exp.Status = calc.StatusBacklog
+			return true
+		}
+		return false
+	}
+
+	if isExpected := delExpectation(&exp.TasksQueue[exampleIdx+1].FirstArgument); !isExpected {
+		if isExpected = delExpectation(&exp.TasksQueue[exampleIdx+1].SecondArgument); !isExpected {
+			return ErrExpectation
+		}
+	}
+
+	exp.TasksQueue[exampleIdx] = example
 
 	return nil
 }
