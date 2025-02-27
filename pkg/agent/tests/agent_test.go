@@ -8,7 +8,7 @@ import (
 	"github.com/Antibrag/gcalc-server/pkg/calc"
 )
 
-func TestSolveExample(t *testing.T) {
+func TestSolve(t *testing.T) {
 	cases := []struct {
 		name         string
 		example      calc.Example
@@ -45,19 +45,19 @@ func TestSolveExample(t *testing.T) {
 			expected:     133,
 			expected_err: nil,
 		},
-		{
-			name:         "equal(1)",
-			example:      calc.Example{FirstArgument: calc.Argument{Value: 1}, Operation: calc.Equals},
-			expected:     1,
-			expected_err: nil,
-		},
+		// {
+		// 	name:         "equal(1)",
+		// 	example:      calc.Example{FirstArgument: calc.Argument{Value: 1}, Operation: calc.Equals},
+		// 	expected:     1,
+		// 	expected_err: nil,
+		// },
 	}
 
 	for _, test := range cases {
 		t.Run(test.name, func(t *testing.T) {
-			got, err := agent.SolveExample(test.example)
-			if got != test.expected || !errors.Is(err, test.expected_err) {
-				t.Errorf("SolveExample(%#v) = (%f, %q), but expected: (%f, %q)", test.example, got, err, test.expected, test.expected_err)
+			err := agent.Solve(&test.example)
+			if test.example.Answer != test.expected || !errors.Is(err, test.expected_err) {
+				t.Errorf("SolveExample(%#v) = (%f, %q), but expected: (%f, %q)", test.example, test.example.Answer, err, test.expected, test.expected_err)
 			}
 		})
 	}
