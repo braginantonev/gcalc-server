@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"sync"
 	"time"
 
 	"github.com/Antibrag/gcalc-server/pkg/calc"
@@ -15,7 +16,7 @@ const (
 	TIME_SUBTRACTION_MS    = 150
 	TIME_MULTIPLICATION_MS = 300
 	TIME_DIVISIONS_MS      = 350
-	COMPUTING_POWER        = 1
+	COMPUTING_POWER        = 5
 	INTERNAL_TASK_URL      = "localhost/internal/task"
 )
 
@@ -26,8 +27,15 @@ type Request struct {
 }
 
 func EnableAgents() {
-	for range COMPUTING_POWER {
+	mux := sync.Mutex{}
+
+	//! Для сервера нужно сделать очередь из запросов, для избежания получения повторных примеров
+
+	for range COMPUTING_POWER - 1 {
 		go func() {
+			mux.Lock()
+			defer mux.Unlock()
+
 			ex, err := GetExample()
 			if err != nil {
 				SendRequest(ex, err)
