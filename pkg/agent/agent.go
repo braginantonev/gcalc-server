@@ -2,9 +2,11 @@ package agent
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"slices"
 	"sync"
 	"time"
 
@@ -17,7 +19,7 @@ const (
 	TIME_MULTIPLICATION_MS = 300
 	TIME_DIVISIONS_MS      = 350
 	COMPUTING_POWER        = 5
-	INTERNAL_TASK_URL      = "localhost/internal/task"
+	INTERNAL_TASK_URL      = "http://localhost:8080/internal/task"
 )
 
 type Request struct {
@@ -26,26 +28,45 @@ type Request struct {
 	Error  string  `json:"error,omitempty"`
 }
 
-func EnableAgents() {
+var examplesQueue []calc.Example
+
+func EnableAgents(ctx context.Context) {
+	examplesQueue = make([]calc.Example, 0, 5)
 	mux := sync.Mutex{}
 
 	//! Для сервера нужно сделать очередь из запросов, для избежания получения повторных примеров
 
-	for range COMPUTING_POWER - 1 {
+	for range COMPUTING_POWER {
 		go func() {
-			mux.Lock()
-			defer mux.Unlock()
+			select {
+			case <-ctx.Done():
+				return
 
-			ex, err := GetExample()
-			if err != nil {
-				SendRequest(ex, err)
+			default:
+				ex, err := GetExample()
+				if err != nil {
+					SendRequest(ex, err)
+				}
+
+				var exampleIdx int
+
+				mux.Lock()
+				if !slices.Contains(examplesQueue, ex) {
+					examplesQueue = append(examplesQueue, ex)
+					exampleIdx = len(examplesQueue) - 1
+				}
+				mux.Unlock()
+
+				if err = Solve(&ex); err != nil {
+					SendRequest(ex, err)
+				}
+
+				mux.Lock()
+				examplesQueue = append(examplesQueue[:exampleIdx], examplesQueue[exampleIdx+1:]...)
+				mux.Unlock()
+
+				SendRequest(ex, nil)
 			}
-
-			if err = Solve(&ex); err != nil {
-				SendRequest(ex, err)
-			}
-
-			SendRequest(ex, nil)
 		}()
 	}
 }
@@ -91,22 +112,22 @@ func Solve(ex *calc.Example) error {
 
 	switch ex.Operation {
 	case calc.Plus:
-		<-time.NewTimer(TIME_ADDITION_MS * time.Millisecond).C
+		<-time.After(TIME_ADDITION_MS * time.Millisecond)
 		ex.Answer = ex.FirstArgument.Value + ex.SecondArgument.Value
 		return nil
 
 	case calc.Minus:
-		<-time.NewTimer(TIME_SUBTRACTION_MS * time.Millisecond).C
+		<-time.After(TIME_SUBTRACTION_MS * time.Millisecond)
 		ex.Answer = ex.FirstArgument.Value - ex.SecondArgument.Value
 		return nil
 
 	case calc.Multiply:
-		<-time.NewTimer(TIME_MULTIPLICATION_MS * time.Millisecond).C
+		<-time.After(TIME_MULTIPLICATION_MS * time.Millisecond)
 		ex.Answer = ex.FirstArgument.Value * ex.SecondArgument.Value
 		return nil
 
 	case calc.Division:
-		<-time.NewTimer(TIME_DIVISIONS_MS * time.Millisecond).C
+		<-time.After(TIME_DIVISIONS_MS * time.Millisecond)
 		ex.Answer = ex.FirstArgument.Value / ex.SecondArgument.Value
 		return nil
 
