@@ -6,6 +6,7 @@ import (
 	"log/slog"
 	"net/http"
 	"slices"
+	"strings"
 
 	"github.com/Antibrag/gcalc-server/pkg/orchestrator"
 )
@@ -13,7 +14,7 @@ import (
 func logFailedConvert(resp_json string, w *http.ResponseWriter) {
 	(*w).WriteHeader(http.StatusInternalServerError)
 	slog.Error("Failed convert response to JSON")
-	slog.Debug("expression:", string(expression), "\nresponse json:", (resp_json))
+	slog.Debug("expression:", string(expression), "\nresponse json:", resp_json)
 }
 
 func AddExpressionHandler(w http.ResponseWriter, r *http.Request) {
@@ -21,7 +22,7 @@ func AddExpressionHandler(w http.ResponseWriter, r *http.Request) {
 	err := json.Unmarshal(expression, &req)
 	if err != nil {
 		slog.Error("Failed unmarshal expression json.", slog.String("error", err.Error()))
-	
+
 		w.WriteHeader(http.StatusUnsupportedMediaType)
 		return
 	}
@@ -100,28 +101,10 @@ func GetExpressionsQueueHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write(resp_json)
 }
 
-func SetExpressionIdMiddleware(fn http.HandlerFunc, id string) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		_, err := w.Write([]byte(id))
-		if err != nil {
-			slog.Error("Failed set id to request.", slog.String("error", err.Error()))
-			return
-		}
-		fn.ServeHTTP(w, r)
-	}
-}
-
 func GetExpressionHandler(w http.ResponseWriter, r *http.Request) {
-	var body []byte
+	paths := strings.Split(r.URL.Path, "/")
+	id := paths[len(paths)-1]
 
-	n, err := r.Body.Read(body)
-	if err != nil {
-		slog.Error("Failed read body in GetExpressionHandler().", slog.String("error", err.Error()))
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-
-	id := string(body[:n])
 	exp, err := orchestrator.GetExpression(id)
 	if err != nil {
 		slog.Error("expression not found", slog.String("id", id))
