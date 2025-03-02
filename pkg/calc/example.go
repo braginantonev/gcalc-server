@@ -1,13 +1,21 @@
 package calc
 
 type Status string
-
 const (
 	StatusAnalyze         Status = "analyze"
 	StatusBacklog         Status = "backlog"
 	StatusIsWaitingValues Status = "in waiting values"
 	StatusInProgress      Status = "in progress"
 	StatusComplete        Status = "complete"
+)
+
+type Operator rune
+const (
+	Plus     Operator = '+'
+	Minus    Operator = '-'
+	Multiply Operator = '*'
+	Division Operator = '/'
+	Equals   Operator = '='
 )
 
 type Argument struct {
@@ -23,30 +31,5 @@ type Example struct {
 	Status         Status
 	String         string
 	Answer         float64
-	AnswerChannel  chan float64
-}
-
-func Calc(expression string) (result float64, err error) {
-	if expression == "" {
-		return 0, ErrExpressionEmpty
-	}
-
-	// for {
-	// 	ex_str, pri_idx, example, err := GetExample(expression)
-	// 	if err != nil {
-	// 		return 0, err
-	// 	}
-
-	// 	result, err = SolveExample(example)
-	// 	if err != nil {
-	// 		return 0, err
-	// 	}
-
-	// 	if ex_str == "end" {
-	// 		break
-	// 	}
-
-	// 	expression = EraseExample(expression, ex_str, pri_idx, result)
-	// }
-	return
+	//AnswerChannel  chan float64
 }

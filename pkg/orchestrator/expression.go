@@ -56,7 +56,7 @@ func (expression *Expression) setTasksQueue() error {
 
 func AddExpression(expression string) error {
 	if expression == "" {
-		return calc.ErrExpressionEmpty
+		return ErrExpressionEmpty
 	}
 
 	ex := Expression{

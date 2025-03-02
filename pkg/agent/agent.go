@@ -107,7 +107,7 @@ func SendRequest(example calc.Example, err error) {
 
 func Solve(ex *calc.Example) error {
 	if ex.SecondArgument.Value == 0 && ex.Operation == calc.Division {
-		return calc.ErrDivideByZero
+		return ErrDivideByZero
 	}
 
 	switch ex.Operation {

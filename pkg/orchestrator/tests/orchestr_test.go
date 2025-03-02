@@ -243,7 +243,7 @@ func TestGetExpressionsQueue(t *testing.T) {
 		{
 			name:         "error",
 			expression:   "",
-			expected_err: calc.ErrExpressionEmpty,
+			expected_err: orchestrator.ErrExpressionEmpty,
 		},
 		{
 			name:       "1 expression",
