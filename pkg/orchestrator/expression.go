@@ -61,6 +61,8 @@ func AddExpression(expression string) (string, error) {
 	}
 
 	ex := Expression{
+		//!!! Если придётся реализовывать удаление выражения, то нужно изменить систему выдачи индекса !!!
+		//!!! При удалении элемента, длина уменьшается, следовательно следующее добавленное выражение, будет иметь такой же индекс, что и предпоследний !!!
 		Id:     fmt.Sprint(len(expressionsQueue)),
 		Status: calc.StatusAnalyze,
 		String: expression,
@@ -97,7 +99,6 @@ func GetExpressionsQueue() []Expression {
 	return expressionsQueue
 }
 
-// TODO: Написать тесты
 func GetTask(id string) (calc.Example, error) {
 	if id == "" {
 		exp, err := GetExpression("")
@@ -125,7 +126,6 @@ func GetTask(id string) (calc.Example, error) {
 	return calc.Example{}, ErrTaskNotFound
 }
 
-// TODO: Добавить тесты
 func SetExampleResult(id string, result float64) error {
 	example, err := GetTask(id)
 	if err != nil {
@@ -177,7 +177,3 @@ func SetExampleResult(id string, result float64) error {
 
 	return nil
 }
-
-// TODO: Написать функцию принятия результата вычисления задания
-// TODO: При получении результата сменить статус примера, который ожидает данные, на StatusBacklog
-// TODO: Также проверяется, если все задачи примера выполнены, то примеру выставляется StatusComplete
