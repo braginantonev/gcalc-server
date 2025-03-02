@@ -37,14 +37,14 @@ func NewApplication() *Application {
 }
 
 func (app Application) Run() error {
-	//Todo: Добавить мьюксы для хендлеров
-
 	mux := http.NewServeMux()
 
-	slog.Info("Start server", slog.String("port", app.cfg.Port))
+	mux.HandleFunc("/api/v1/calculate", RequestEmpty(AddExpressionHandler))
+	mux.HandleFunc("/api/v1/expressions", GetExpressionsQueueHandler)
+	mux.HandleFunc("/api/v1/expressions/", GetExpressionHandler)
 
-	http.HandleFunc("/api/v1/calculate", RequestEmpty(CalcHandler))
-	err := http.ListenAndServe(":"+app.cfg.Port, nil)
+	slog.Info("Start server", slog.String("port", app.cfg.Port))
+	err := http.ListenAndServe(":"+app.cfg.Port, mux)
 	if err != nil {
 		slog.Error("Failed to start server")
 		return err
@@ -68,11 +68,6 @@ type ResponseExpression struct {
 	Id     string      `json:"id"`
 	Status calc.Status `json:"status,omitempty"`
 	Result float64     `json:"result,omitempty"`
-	Error  string      `json:"error,omitempty"`
-}
-
-type ResponseExpressionsQueue struct {
-	Expressions []ResponseExpression `json:"expressions"`
 }
 
 type ResponseTask struct {
