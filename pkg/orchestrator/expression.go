@@ -54,9 +54,10 @@ func (expression *Expression) setTasksQueue() error {
 	return nil
 }
 
-func AddExpression(expression string) error {
+// Return id expression and error
+func AddExpression(expression string) (string, error) {
 	if expression == "" {
-		return ErrExpressionEmpty
+		return "", ErrExpressionEmpty
 	}
 
 	ex := Expression{
@@ -66,11 +67,11 @@ func AddExpression(expression string) error {
 	}
 
 	if err := ex.setTasksQueue(); err != nil {
-		return err
+		return "", err
 	}
 
 	expressionsQueue = append(expressionsQueue, ex)
-	return nil
+	return ex.Id, nil
 }
 
 func GetExpression(id string) (Expression, error) {

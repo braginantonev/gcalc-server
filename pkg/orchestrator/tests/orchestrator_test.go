@@ -210,7 +210,7 @@ func TestSetTasksQueue(t *testing.T) {
 
 	for i, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			gotErr := orchestrator.AddExpression(test.expression)
+			_, gotErr := orchestrator.AddExpression(test.expression)
 			ex, err := orchestrator.GetExpression(fmt.Sprint(i))
 			if err != nil {
 				t.Error(err)
@@ -306,7 +306,7 @@ func TestGetExpressionsQueue(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			gotErr := orchestrator.AddExpression(test.expression)
+			_, gotErr := orchestrator.AddExpression(test.expression)
 			if !errors.Is(gotErr, test.expected_err) {
 				t.Error("expected error:", test.expected_err, "but expected:", gotErr)
 			}
@@ -463,7 +463,7 @@ func TestGetTask(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			gotErr := orchestrator.AddExpression(test.expression)
+			_, gotErr := orchestrator.AddExpression(test.expression)
 			if !errors.Is(gotErr, test.expected_err) {
 				t.Error("expected error:", test.expected_err, "but got:", gotErr)
 			}
