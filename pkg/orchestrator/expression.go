@@ -80,7 +80,7 @@ func GetExpression(id string) (Expression, error) {
 				return ex, nil
 			}
 		}
-		return Expression{}, ErrEOQ
+		return Expression{}, nil
 	}
 
 	for _, ex := range expressionsQueue {
@@ -110,7 +110,7 @@ func GetTask(id string) (calc.Example, error) {
 				return example, nil
 			}
 		}
-		return calc.Example{}, ErrEOQ
+		return calc.Example{}, nil
 	}
 
 	for _, exp := range expressionsQueue {
