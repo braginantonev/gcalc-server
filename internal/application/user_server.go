@@ -1,0 +1,124 @@
+package application
+
+import (
+	"encoding/json"
+	"io"
+	"log/slog"
+	"net/http"
+	"slices"
+
+	"github.com/Antibrag/gcalc-server/pkg/orchestrator"
+)
+
+func logFailedConvert(resp_json string, w *http.ResponseWriter) {
+	(*w).WriteHeader(http.StatusInternalServerError)
+	slog.Error("Failed convert response to JSON")
+	slog.Debug("expression:", string(expression), "\nresponse json:", (resp_json))
+}
+
+func AddExpressionHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	req := RequestExpression{}
+	err := json.Unmarshal(expression, &req)
+	if err != nil {
+		slog.Error("Failed unmarshal expression json.", slog.String("error", err.Error()))
+		resp, _ := json.Marshal(ResponseExpression{Error: ErrUnsupportedBodyType.Error()})
+
+		w.WriteHeader(http.StatusUnsupportedMediaType)
+		w.Write(resp)
+		return
+	}
+
+	id, err := orchestrator.AddExpression(req.Expression)
+	if err != nil {
+		slog.Error("Failed add expression. ", slog.String("error", err.Error()))
+
+		isInternalError := slices.Contains(OrchestratorErrors, &err)
+		var resp_json []byte
+		if isInternalError {
+			w.WriteHeader(http.StatusInternalServerError)
+			resp_json, _ = json.Marshal(ResponseExpression{Error: ErrInternalError.Error()})
+		} else {
+			w.WriteHeader(http.StatusUnprocessableEntity)
+			resp_json, _ = json.Marshal(ResponseExpression{Error: err.Error()})
+		}
+		w.Write(resp_json)
+	}
+
+	resp := ResponseExpression{
+		Id: id,
+	}
+
+	resp_json, err := json.Marshal(resp)
+	if err != nil {
+		logFailedConvert(string(resp_json), &w)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Write(resp_json)
+}
+
+func RequestEmpty(fn http.HandlerFunc) http.HandlerFunc {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+
+		var err error
+		expression, err = io.ReadAll(r.Body)
+
+		if err != nil {
+			slog.Error("Failed read request body")
+
+			resp_json, err := json.Marshal(ResponseExpression{Error: err.Error()})
+			if err != nil {
+				logFailedConvert(string(resp_json), &w)
+				return
+			}
+
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write(resp_json)
+			return
+		}
+
+		if len(expression) == 0 {
+			slog.Error("Request body empty")
+
+			resp_json, err := json.Marshal(ResponseExpression{Error: ErrRequestBodyEmpty.Error()})
+			if err != nil {
+				logFailedConvert(string(resp_json), &w)
+				return
+			}
+
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write(resp_json)
+			return
+		}
+
+		fn.ServeHTTP(w, r)
+	})
+}
+
+func GetExpressionsQueueHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	expressions := orchestrator.GetExpressionsQueue()
+
+	var resp ResponseExpressionsQueue
+	for _, exp := range expressions {
+		resp.Expressions = append(resp.Expressions, ResponseExpression{
+			Id:     exp.Id,
+			Status: exp.Status,
+			Result: exp.Result,
+		})
+	}
+
+	resp_json, err := json.Marshal(resp)
+	if err != nil {
+		logFailedConvert(string(resp_json), &w)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Write(resp_json)
+}
