@@ -2,6 +2,7 @@ package orchestrator
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/Antibrag/gcalc-server/pkg/calc"
@@ -24,7 +25,8 @@ type Expression struct {
 func (expression *Expression) setTasksQueue() error {
 	expressionStr := expression.String
 
-	for range 5 {
+	for {
+
 		example, priority_idx, err := GetExample(expressionStr)
 		if err != nil {
 			return err
@@ -83,7 +85,7 @@ func GetExpression(id string) (Expression, error) {
 				return ex, nil
 			}
 		}
-		return Expression{}, nil
+		return Expression{}, DHT
 	}
 
 	for _, ex := range expressionsQueue {
@@ -101,14 +103,22 @@ func GetExpressionsQueue() []Expression {
 
 func GetTask(id string) (calc.Example, error) {
 	if id == "" {
-		exp, err := GetExpression("")
+		expression_local, err := GetExpression("")
 		if err != nil {
 			return calc.Example{}, DHT
 		}
 
-		for _, example := range exp.TasksQueue {
+		expId, err := strconv.Atoi(expression_local.Id)
+		if err != nil {
+			return calc.Example{}, err
+		}
+
+		expression := &expressionsQueue[expId]
+
+		for _, example := range expression.TasksQueue {
 			if example.Status == calc.StatusBacklog {
 				example.Status = calc.StatusInProgress
+				expression.Status = calc.StatusInProgress
 				return example, nil
 			}
 		}
@@ -127,53 +137,63 @@ func GetTask(id string) (calc.Example, error) {
 }
 
 func SetExampleResult(id string, result float64) error {
-	example, err := GetTask(id)
+	fmt.Println("set example", id, "result", result)
+	example_local, err := GetTask(id)
 	if err != nil {
 		return err
 	}
 
-	example.Answer = result
-	example.Status = calc.StatusComplete
+	if example_local.Status == calc.StatusComplete {
+		fmt.Println("example", id, "already complete")
+		return nil
+	}
 
-	low_line_idx := strings.IndexRune(example.Id, '_')
-	exp, err := GetExpression(example.Id[:low_line_idx])
+	low_line_idx := strings.IndexRune(example_local.Id, '_')
+	exp_local, err := GetExpression(example_local.Id[:low_line_idx])
 	if err != nil {
 		return err
 	}
 
-	var exampleIdx int
-	for i, example := range exp.TasksQueue {
-		if example.Id == id {
-			exampleIdx = i
-			break
-		}
+	expressionId_int, err := strconv.Atoi(exp_local.Id)
+	if err != nil {
+		return err
 	}
 
-	if exampleIdx == len(exp.TasksQueue)-1 {
-		exp.Result = result
-		exp.Status = calc.StatusComplete
-		exp.TasksQueue[exampleIdx] = example
+	exampleId_int, err := strconv.Atoi(example_local.Id[low_line_idx+1:])
+	if err != nil {
+		return err
+	}
+
+	p_expression := &expressionsQueue[expressionId_int]
+	p_example := &p_expression.TasksQueue[exampleId_int]
+
+	p_example.Answer = result
+	p_example.Status = calc.StatusComplete
+
+	fmt.Println("example idx -", exampleId_int)
+	if exampleId_int == len(p_expression.TasksQueue)-1 {
+		fmt.Println("set complete to exp")
+		p_expression.Result = result
+		p_expression.Status = calc.StatusComplete
 		return nil
 	}
 
 	// Return true - if argument excepted value
 	delExpectation := func(arg *calc.Argument) bool {
-		if arg.Expected == example.Id {
+		if arg.Expected == id {
 			arg.Value = result
 			arg.Expected = ""
-			exp.Status = calc.StatusBacklog
+			p_expression.TasksQueue[exampleId_int+1].Status = calc.StatusBacklog
 			return true
 		}
 		return false
 	}
 
-	if isExpected := delExpectation(&exp.TasksQueue[exampleIdx+1].FirstArgument); !isExpected {
-		if isExpected = delExpectation(&exp.TasksQueue[exampleIdx+1].SecondArgument); !isExpected {
+	if isExpected := delExpectation(&p_expression.TasksQueue[exampleId_int+1].FirstArgument); !isExpected {
+		if isExpected = delExpectation(&p_expression.TasksQueue[exampleId_int+1].SecondArgument); !isExpected {
 			return ErrExpectation
 		}
 	}
-
-	exp.TasksQueue[exampleIdx] = example
 
 	return nil
 }
