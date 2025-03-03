@@ -1,6 +1,9 @@
 package calc
 
+import "time"
+
 type Status string
+
 const (
 	StatusAnalyze         Status = "analyze"
 	StatusBacklog         Status = "backlog"
@@ -10,6 +13,7 @@ const (
 )
 
 type Operator rune
+
 const (
 	Plus     Operator = '+'
 	Minus    Operator = '-'
@@ -24,12 +28,12 @@ type Argument struct {
 }
 
 type Example struct {
-	Id             string
-	FirstArgument  Argument
-	SecondArgument Argument
-	Operation      Operator
+	Id             string `json:"id"`
+	FirstArgument  Argument `json:"arg1"`
+	SecondArgument Argument `json:"arg2"`
+	Operation      Operator `json:"operation"`
+	OperationTime  time.Duration `json:"operation_time"`
 	Status         Status
 	String         string
 	Answer         float64
-	//AnswerChannel  chan float64
 }
