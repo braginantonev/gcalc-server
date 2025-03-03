@@ -33,6 +33,7 @@ func Enable(ctx context.Context) {
 	mux := sync.Mutex{}
 
 	//! Для сервера нужно сделать очередь из запросов, для избежания получения повторных примеров
+	//Todo: Исправить наслаивание потоков
 
 	for range COMPUTING_POWER {
 		go func() {
@@ -55,22 +56,30 @@ func Enable(ctx context.Context) {
 						SendRequest(ex, err)
 					}
 
-					fmt.Println(ex)
-
 					var exampleIdx int
 
 					mux.Lock()
 					if !slices.Contains(examplesQueue, ex) {
+						fmt.Println("don't contains")
 						examplesQueue = append(examplesQueue, ex)
 						exampleIdx = len(examplesQueue) - 1
+					} else {
+						mux.Unlock()
+						continue
 					}
 					mux.Unlock()
 
+					fmt.Println(len(examplesQueue))
+
 					if err = Solve(&ex); err != nil {
+						fmt.Println("err")
 						SendRequest(ex, err)
 					}
 
+					fmt.Println(len(examplesQueue))
+
 					mux.Lock()
+					//Delete example in queue
 					examplesQueue = append(examplesQueue[:exampleIdx], examplesQueue[exampleIdx+1:]...)
 					mux.Unlock()
 
@@ -110,7 +119,16 @@ func GetExample() (calc.Example, error) {
 }
 
 func SendRequest(example calc.Example, err error) {
-	req := Request{Id: example.Id, Result: example.Answer, Error: err.Error()}
+	var req Request
+
+	if err != nil {
+		req.Id = example.Id
+		req.Error = err.Error()
+	} else {
+		req.Id = example.Id
+		req.Result = example.Answer
+	}
+
 	req_json, err := json.Marshal(req)
 	if err != nil {
 		fmt.Printf("Error: SendRequest() - %s", err.Error())
@@ -123,11 +141,13 @@ func SendRequest(example calc.Example, err error) {
 }
 
 func Solve(ex *calc.Example) error {
+	fmt.Println("solve -", *ex)
 	if ex.SecondArgument.Value == 0 && ex.Operation == calc.Division {
 		return ErrDivideByZero
 	}
 
-	<-time.After(ex.OperationTime * time.Millisecond)
+	//<-time.After(ex.OperationTime * time.Millisecond)
+	fmt.Println("wait")
 
 	switch ex.Operation {
 	case calc.Plus:
