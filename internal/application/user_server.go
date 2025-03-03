@@ -11,9 +11,9 @@ import (
 	"github.com/Antibrag/gcalc-server/pkg/orchestrator"
 )
 
-func logFailedConvert(resp_json string, w *http.ResponseWriter) {
+func logFailedConvert(handler_name, resp_json string, w *http.ResponseWriter) {
 	(*w).WriteHeader(http.StatusInternalServerError)
-	slog.Error("Failed convert response to JSON")
+	slog.Error("Failed convert response to JSON", slog.String("handler_name", handler_name))
 	slog.Debug("expression:", string(expression), "\nresponse json:", resp_json)
 }
 
@@ -46,7 +46,7 @@ func AddExpressionHandler(w http.ResponseWriter, r *http.Request) {
 
 	resp_json, err := json.Marshal(resp)
 	if err != nil {
-		logFailedConvert(string(resp_json), &w)
+		logFailedConvert("AddExpressionHandler()", string(resp_json), &w)
 		return
 	}
 
@@ -97,7 +97,7 @@ func GetExpressionsQueueHandler(w http.ResponseWriter, r *http.Request) {
 
 	resp_json, err := json.Marshal(resp)
 	if err != nil {
-		logFailedConvert(string(resp_json), &w)
+		logFailedConvert("GetExpressionsQueue()", string(resp_json), &w)
 		return
 	}
 
@@ -131,7 +131,7 @@ func GetExpressionHandler(w http.ResponseWriter, r *http.Request) {
 
 	resp_json, err := json.Marshal(resp)
 	if err != nil {
-		logFailedConvert(string(resp_json), &w)
+		logFailedConvert("getExpressionHandler()", string(resp_json), &w)
 		return
 	}
 
