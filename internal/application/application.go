@@ -1,11 +1,12 @@
 package application
 
 import (
+	"context"
 	"log/slog"
 	"net/http"
 	"os"
-	"time"
 
+	"github.com/Antibrag/gcalc-server/pkg/agent"
 	"github.com/Antibrag/gcalc-server/pkg/calc"
 )
 
@@ -39,9 +40,15 @@ func NewApplication() *Application {
 func (app Application) Run() error {
 	mux := http.NewServeMux()
 
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
 	mux.HandleFunc("/api/v1/calculate", RequestEmpty(AddExpressionHandler))
 	mux.HandleFunc("/api/v1/expressions", GetExpressionsQueueHandler)
 	mux.HandleFunc("/api/v1/expressions/", GetExpressionHandler)
+	mux.HandleFunc("/internal/task", ResultOrGet(ResultHandler, GetTaskHandler))
+
+	agent.Enable(ctx)
 
 	slog.Info("Start server", slog.String("port", app.cfg.Port))
 	err := http.ListenAndServe(":"+app.cfg.Port, mux)
@@ -68,14 +75,6 @@ type ResponseExpression struct {
 	Id     string      `json:"id"`
 	Status calc.Status `json:"status,omitempty"`
 	Result float64     `json:"result,omitempty"`
-}
-
-type ResponseTask struct {
-	Id             string        `json:"id"`
-	FirstArgument  calc.Argument `json:"arg1"`
-	SecondArgument calc.Argument `json:"arg2"`
-	Operation      calc.Operator `json:"operation"`
-	OperationTime  time.Time     `json:"operation_time"`
 }
 
 var expression []byte
