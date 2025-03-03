@@ -103,7 +103,7 @@ func GetTask(id string) (calc.Example, error) {
 	if id == "" {
 		exp, err := GetExpression("")
 		if err != nil {
-			return calc.Example{}, err
+			return calc.Example{}, DHT
 		}
 
 		for _, example := range exp.TasksQueue {
@@ -112,7 +112,7 @@ func GetTask(id string) (calc.Example, error) {
 				return example, nil
 			}
 		}
-		return calc.Example{}, nil
+		return calc.Example{}, DHT
 	}
 
 	for _, exp := range expressionsQueue {
