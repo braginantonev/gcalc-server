@@ -14,10 +14,10 @@ import (
 )
 
 const (
-	TIME_ADDITION_MS       = 100
-	TIME_SUBTRACTION_MS    = 150
-	TIME_MULTIPLICATION_MS = 300
-	TIME_DIVISIONS_MS      = 350
+	TIME_ADDITION_MS       = 1000
+	TIME_SUBTRACTION_MS    = 2000
+	TIME_MULTIPLICATION_MS = 3000
+	TIME_DIVISIONS_MS      = 4000
 )
 
 func ResultOrGet(result_fn http.HandlerFunc, get_fn http.HandlerFunc) http.HandlerFunc {
@@ -72,6 +72,7 @@ func ResultHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	slog.Info("Set result", slog.String("expression_id", req_json.Id), slog.Float64("result", req_json.Result))
 	w.WriteHeader(http.StatusOK)
 }
 
