@@ -118,6 +118,7 @@ func TestEraseExample(t *testing.T) {
 	}
 }
 
+// Todo: Исправить в тесте статусы
 func TestSetTasksQueue(t *testing.T) {
 	tests := []struct {
 		name           string
@@ -210,7 +211,7 @@ func TestSetTasksQueue(t *testing.T) {
 
 	for i, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			gotErr := orchestrator.AddExpression(test.expression)
+			_, gotErr := orchestrator.AddExpression(test.expression)
 			ex, err := orchestrator.GetExpression(fmt.Sprint(i))
 			if err != nil {
 				t.Error(err)
@@ -243,7 +244,7 @@ func TestGetExpressionsQueue(t *testing.T) {
 		{
 			name:         "error",
 			expression:   "",
-			expected_err: calc.ErrExpressionEmpty,
+			expected_err: orchestrator.ErrExpressionEmpty,
 		},
 		{
 			name:       "1 expression",
@@ -306,7 +307,7 @@ func TestGetExpressionsQueue(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			gotErr := orchestrator.AddExpression(test.expression)
+			_, gotErr := orchestrator.AddExpression(test.expression)
 			if !errors.Is(gotErr, test.expected_err) {
 				t.Error("expected error:", test.expected_err, "but expected:", gotErr)
 			}
@@ -414,7 +415,7 @@ func TestGetTask(t *testing.T) {
 				FirstArgument:  calc.Argument{Value: 2},
 				SecondArgument: calc.Argument{Value: 4},
 				Operation:      calc.Multiply,
-				Status:         calc.StatusBacklog,
+				Status:         calc.StatusInProgress,
 				String:         "2*4",
 			},
 		},
@@ -428,7 +429,7 @@ func TestGetTask(t *testing.T) {
 				FirstArgument:  calc.Argument{Value: 1},
 				SecondArgument: calc.Argument{Value: 1},
 				Operation:      calc.Plus,
-				Status:         calc.StatusBacklog,
+				Status:         calc.StatusInProgress,
 				String:         "1+1",
 			},
 		},
@@ -439,23 +440,25 @@ func TestGetTask(t *testing.T) {
 			result:     3,
 			expected_task: calc.Example{
 				Id:             "1_1",
-				FirstArgument:  calc.Argument{Value: 1},
-				SecondArgument: calc.Argument{Expected: "1_0"},
+				FirstArgument:  calc.Argument{Value: 2},
+				SecondArgument: calc.Argument{Value: 1},
 				Operation:      calc.Plus,
-				Status:         calc.StatusIsWaitingValues,
-				String:         "1+id:1_0",
+				Status:         calc.StatusInProgress,
+				String:         "id:1_0+1",
 			},
 		},
 		{
 			name:       "find by id",
 			expression: "1-1",
 			id:         "0_0",
+			result:     8,
 			expected_task: calc.Example{
 				Id:             "0_0",
 				FirstArgument:  calc.Argument{Value: 2},
 				SecondArgument: calc.Argument{Value: 4},
 				Operation:      calc.Multiply,
-				Status:         calc.StatusBacklog,
+				Status:         calc.StatusComplete,
+				Answer:         8,
 				String:         "2*4",
 			},
 		},
@@ -463,12 +466,13 @@ func TestGetTask(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			gotErr := orchestrator.AddExpression(test.expression)
+			_, gotErr := orchestrator.AddExpression(test.expression)
 			if !errors.Is(gotErr, test.expected_err) {
 				t.Error("expected error:", test.expected_err, "but got:", gotErr)
 			}
 
 			gotTask, gotErr := orchestrator.GetTask(test.id)
+			fmt.Println(orchestrator.GetExpressionsQueue())
 			if !errors.Is(gotErr, test.expected_err) {
 				t.Error("expected error:", test.expected_err, "but got:", gotErr)
 			}

@@ -3,7 +3,9 @@ package application
 import (
 	"errors"
 
+	"github.com/Antibrag/gcalc-server/pkg/agent"
 	"github.com/Antibrag/gcalc-server/pkg/calc"
+	"github.com/Antibrag/gcalc-server/pkg/orchestrator"
 )
 
 var (
@@ -11,11 +13,18 @@ var (
 	ErrRequestBodyEmpty    error = errors.New("request body empty")
 	ErrUnsupportedBodyType error = errors.New("unsupported request body type")
 
-	CalculatorErrors []*error = []*error{
-		&calc.ErrDivideByZero,
-		&calc.ErrExpressionEmpty,
-		&calc.ErrOperationWithoutValue,
-		&calc.ErrBracketsNotFound,
+	OrchestratorErrors []*error = []*error{
+		&orchestrator.ErrExpressionEmpty,
+		&orchestrator.ErrOperationWithoutValue,
+		&orchestrator.ErrBracketsNotFound,
+		&orchestrator.ErrExpressionNotFound,
+		&orchestrator.ErrTaskNotFound,
+		&orchestrator.ErrExpectation,
 		&calc.ErrExpressionIncorrect,
+	}
+
+	AgentErrors []*error = []*error{
+		&calc.ErrExpressionIncorrect,
+		&agent.ErrDivideByZero,
 	}
 )

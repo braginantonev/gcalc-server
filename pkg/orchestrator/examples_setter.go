@@ -25,7 +25,7 @@ func GetExample(example string) (calc.Example, int, error) {
 		}
 
 		if (begin == -1 && end != -1) || (begin != -1 && end == -1) {
-			return calc.Example{}, 0, calc.ErrBracketsNotFound
+			return calc.Example{}, 0, ErrBracketsNotFound
 		}
 
 		local_ex = local_ex[begin : end+1]
@@ -61,7 +61,7 @@ func GetExample(example string) (calc.Example, int, error) {
 	}
 
 	if actionIdx == 0 || actionIdx == len(local_ex)-1 {
-		return calc.Example{}, 0, calc.ErrOperationWithoutValue
+		return calc.Example{}, 0, ErrOperationWithoutValue
 	}
 
 	ex.Operation = calc.Operator(local_ex[actionIdx])
@@ -69,7 +69,7 @@ func GetExample(example string) (calc.Example, int, error) {
 	// ---- Нахождение концов двух чисел ----
 	var exampleLen = len(local_ex)
 	if actionIdx == 0 || actionIdx == exampleLen-1 {
-		return calc.Example{}, 0, calc.ErrOperationWithoutValue
+		return calc.Example{}, 0, ErrOperationWithoutValue
 	}
 
 	convertArgument := func(arg *calc.Argument, str string) (err error) {

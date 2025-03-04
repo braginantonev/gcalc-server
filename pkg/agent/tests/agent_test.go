@@ -31,7 +31,7 @@ func TestSolve(t *testing.T) {
 			name:         "divide by zero",
 			example:      calc.Example{FirstArgument: calc.Argument{Value: 0}, SecondArgument: calc.Argument{Value: 0}, Operation: calc.Division},
 			expected:     0,
-			expected_err: calc.ErrDivideByZero,
+			expected_err: agent.ErrDivideByZero,
 		},
 		{
 			name:         "unknown operator",
