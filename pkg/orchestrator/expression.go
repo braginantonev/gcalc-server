@@ -52,8 +52,6 @@ func (expression *Expression) setTasksQueue() error {
 
 		expressionStr = EraseExample(expressionStr, example.String, priority_idx, example.Id)
 	}
-
-	return nil
 }
 
 // Return id expression and error
@@ -113,13 +111,13 @@ func GetTask(id string) (calc.Example, error) {
 			return calc.Example{}, err
 		}
 
-		expression := &expressionsQueue[expId]
-
-		for _, example := range expression.TasksQueue {
-			if example.Status == calc.StatusBacklog {
-				example.Status = calc.StatusInProgress
-				expression.Status = calc.StatusInProgress
-				return example, nil
+		p_expression := &expressionsQueue[expId]
+		for i := range p_expression.TasksQueue {
+			p_example := &p_expression.TasksQueue[i]
+			if p_example.Status == calc.StatusBacklog {
+				p_example.Status = calc.StatusInProgress
+				p_expression.Status = calc.StatusInProgress
+				return *p_example, nil
 			}
 		}
 		return calc.Example{}, DHT
@@ -137,7 +135,6 @@ func GetTask(id string) (calc.Example, error) {
 }
 
 func SetExampleResult(id string, result float64) error {
-	fmt.Println("set example", id, "result", result)
 	example_local, err := GetTask(id)
 	if err != nil {
 		return err
@@ -170,28 +167,31 @@ func SetExampleResult(id string, result float64) error {
 	p_example.Answer = result
 	p_example.Status = calc.StatusComplete
 
-	fmt.Println("example idx -", exampleId_int)
 	if exampleId_int == len(p_expression.TasksQueue)-1 {
-		fmt.Println("set complete to exp")
 		p_expression.Result = result
 		p_expression.Status = calc.StatusComplete
 		return nil
 	}
 
-	// Return true - if argument excepted value
-	delExpectation := func(arg *calc.Argument) bool {
-		if arg.Expected == id {
+	// Return true, if example result expected
+	delExpectation := func(arg *calc.Argument) {
+		if arg.Expected == p_example.Id {
 			arg.Value = result
 			arg.Expected = ""
-			p_expression.TasksQueue[exampleId_int+1].Status = calc.StatusBacklog
-			return true
 		}
-		return false
 	}
 
-	if isExpected := delExpectation(&p_expression.TasksQueue[exampleId_int+1].FirstArgument); !isExpected {
-		if isExpected = delExpectation(&p_expression.TasksQueue[exampleId_int+1].SecondArgument); !isExpected {
-			return ErrExpectation
+	for i := range p_expression.TasksQueue {
+		p_local_example := &p_expression.TasksQueue[i]
+		if p_example.Id == p_local_example.Id {
+			continue
+		}
+
+		delExpectation(&p_local_example.FirstArgument)
+		delExpectation(&p_local_example.SecondArgument)
+
+		if p_local_example.FirstArgument.Expected == "" && p_local_example.SecondArgument.Expected == "" {
+			p_local_example.Status = calc.StatusBacklog
 		}
 	}
 
