@@ -26,10 +26,19 @@ type Request struct {
 	Error  string  `json:"error,omitempty"`
 }
 
-var examplesQueue []calc.Example
+var tasks []string
+
+// Return true, if task has been appended, else - false
+func appendTask(task_id string) bool {
+	if slices.Contains(tasks, task_id) {
+		return false
+	}
+
+	tasks = append(tasks, task_id)
+	return true
+}
 
 func Enable(ctx context.Context) {
-	examplesQueue = make([]calc.Example, 0, 5)
 	mux := sync.Mutex{}
 
 	//! Для сервера нужно сделать очередь из запросов, для избежания получения повторных примеров
@@ -56,34 +65,17 @@ func Enable(ctx context.Context) {
 						SendRequest(ex, err)
 					}
 
-					var exampleIdx int
-
 					mux.Lock()
-					if !slices.Contains(examplesQueue, ex) {
-						fmt.Println("don't contains")
-						examplesQueue = append(examplesQueue, ex)
-						exampleIdx = len(examplesQueue) - 1
-					} else {
+					if !appendTask(ex.Id) {
 						mux.Unlock()
 						continue
 					}
 					mux.Unlock()
 
-					fmt.Println(len(examplesQueue))
-
 					if err = Solve(&ex); err != nil {
-						fmt.Println("err")
 						SendRequest(ex, err)
 					}
 
-					fmt.Println(len(examplesQueue))
-
-					mux.Lock()
-					//Delete example in queue
-					examplesQueue = append(examplesQueue[:exampleIdx], examplesQueue[exampleIdx+1:]...)
-					mux.Unlock()
-
-					fmt.Println(len(examplesQueue))
 					SendRequest(ex, nil)
 				}
 			}
@@ -141,13 +133,12 @@ func SendRequest(example calc.Example, err error) {
 }
 
 func Solve(ex *calc.Example) error {
-	fmt.Println("solve -", *ex)
+	fmt.Println("AGENT DEBUG: solve -", *ex)
 	if ex.SecondArgument.Value == 0 && ex.Operation == calc.Division {
 		return ErrDivideByZero
 	}
 
-	//<-time.After(ex.OperationTime * time.Millisecond)
-	fmt.Println("wait")
+	<-time.After(ex.OperationTime)
 
 	switch ex.Operation {
 	case calc.Plus:

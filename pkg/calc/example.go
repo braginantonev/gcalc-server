@@ -28,10 +28,10 @@ type Argument struct {
 }
 
 type Example struct {
-	Id             string `json:"id"`
-	FirstArgument  Argument `json:"arg1"`
-	SecondArgument Argument `json:"arg2"`
-	Operation      Operator `json:"operation"`
+	Id             string        `json:"id"`
+	FirstArgument  Argument      `json:"arg1"`
+	SecondArgument Argument      `json:"arg2"`
+	Operation      Operator      `json:"operation"`
 	OperationTime  time.Duration `json:"operation_time"`
 	Status         Status
 	String         string
