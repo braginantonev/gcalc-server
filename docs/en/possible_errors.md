@@ -22,11 +22,11 @@ or
 Return (Code ```422```):
 ```JSON
 {
+    "id":"0",
     "error": "divide by zero"
 }
 ```
 
----
 ### 2. Expression empty
 Occurs when expression is empty.
 
@@ -40,11 +40,11 @@ Example:
 Return (Code ```422```):
 ```JSON
 {
+    "id":"0",
     "error":"expression empty"
 }
 ```
 
----
 ### 3. OperationWithoutValue
 Occurs when the operator in the expression is missing a value.
 
@@ -58,11 +58,11 @@ Example:
 Return (Code ```422```):
 ```JSON
 {
+    "id":"0",
     "error": "operation don't have a value"
 }
 ```
 
----
 ### 4. BracketsNotFound
 Occurs when an expression contains opening and closing brackets, but lacks closing or opening brackets, respectively.
 
@@ -76,11 +76,11 @@ Example:
 Return (Code ```422```):
 ```JSON
 {
+    "id":"0",
     "error": "not found opened or closed bracket"
 }
 ```
 
----
 ### 5. ExpressionIncorrect
 Occurs when there are extra characters in an expression.
 
@@ -94,11 +94,11 @@ Example:
 Return (Code ```422```):
 ```JSON
 {
+    "id":"0",
     "error": "expression incorrect"
 }
 ```
 
----
 ### 6. RequestBodyEmpty
 Occurs when request body is empty.
 
@@ -110,11 +110,11 @@ curl localhost:8080/api/v1/calculate -X POST --header "application/json"
 Return (Code ```400```):
 ```JSON
 {
+    "id":"0",
     "error":"Request body empty"
 }
 ```
 
----
 ### 7. UnsupportedBodyType
 Occurs when the request body is not written in JSON.
 
@@ -126,6 +126,7 @@ curl localhost:8080/api/v1/calculate -X POST --header "application/json" --data 
 Return (Code ```415```):
 ```JSON
 {
+    "id":"0",
     "error":"Unsupported request body type"
 }
 ```

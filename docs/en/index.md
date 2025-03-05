@@ -1,58 +1,95 @@
-# Docs gcalc-server
+## gcalc-server documentation
 
-## Contents
-1. [Possible errors](./possible_errors.md)
+## Table of contents
+1. [Possible Errors](./possible_errors.md)
 
 ## Introduction
-gcalc-server uses the port from their environment variable ```PORT```. If it was not found, then the standard port ```8080``` is used.
+gcalc-server uses the port from the ```PORT`` environment variable. If it is not found, the default port ```8080``` is used. The server only accepts POST requests.
 
-The server accepts an expression from the request body in the ```JSON``` format.
+### Adding an expression
+The server adds an expression from the request body in ```JSON``` format.
 
-Request body example:
+Example request:
+```Bash.
+curl localhost:<port>/api/v1/calculate -X POST --header 'Content-Type: application/json' --data '<expression>'
+```
+
+The server returns the `id` number of the expression:
 ``` JSON
 {
-    "expression": "1+1+(1+1)"
+    "id":"0"
+}
+```
+Possible response statuses:
+- 201 - Expression successfully added
+- 422 - Expression is incorrectly added
+- 500 - Internal server error
+
+### Checking the status of the expression
+After adding an example, you can check the status of its execution:
+``` Bash
+curl http://localhost:<port>/api/v1/expressions/<id>
+```
+
+``` JSON
+{
+    "id": "0",
+    "status": "in progress"
 }
 ```
 
-The server also transmits the result in the ```JSON``` format and return code ```200```:
+If the example has already been solved, the response will contain the result of the expression:
+``` JSON
+{
+    { "expression": {
+        "id": "0",
+        "status": "complete",
+        "result":4
+    }
+}
+```
+
+Possible response statuses:
+- 200 - Expression found
+- 404 - No such expression
+- 500 - Internal server error
+
+### Obtaining a list of all expressions
+To get a list of all entered expressions:
+``` Bash
+curl http://localhost:<port>/api/v1/expressions
+```
+
 ```JSON
 {
-    "result": 4
+    "expressions": [
+        {
+            "id": "0",
+            "status": "complete",
+            "result":9
+        },
+        {
+            "id": "1",
+            "status": "complete",
+            "result":3
+        }
+    ]
 }
 ```
 
-If there was an error in the expression or the request body was entered incorrectly, the server will return an error:
-
-Request:
-```JSON
-{
-    "expression": "hi"
-}
-```
-
-Response with code ```422```:
-```JSON
-{
-    "error": "expression incorrect"
-}
-```
-
+Possible response statuses:
+- 200 - Successfully received the list of expressions
+- 500 - Internal server error
 
 ---
-### Creating POST request
-To create a POST request to the server, type this in the console
-```Bash
-curl localhost:<port>/api/v1/calculate -X POST --header 'Content-Type: application/json' --data '<data>'
-```
-Example:
-```Bash
-curl localhost:8080/api/v1/calculate -X POST --header 'Content-Type: application/json' --data '{"expression": "5+4"}'
-```
-Return:
-```JSON
-{
-    "result":9
-}
+### Creating a POST request
+
+To create a POST request to the server, Type in the console:
+``` Bash
+curl localhost:<port>/api/v1/calculate -X POST --header 'Content-Type: application/json' --data '<expression>'
 ```
 
+Example:
+``` Bash
+curl localhost:8080/api/v1/calculate -X POST --header 'Content-Type: application/json' --data '{“expression”: “5+4"}'
+```

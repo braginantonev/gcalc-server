@@ -22,11 +22,11 @@
 Ответ (Код ```422```):
 ```JSON
 {
+    "id":"0",
     "error": "divide by zero"
 }
 ```
 
----
 ### 2. Expression empty
 Возникает если выражение пусто.
 
@@ -40,11 +40,11 @@
 Ответ (Код ```422```):
 ```JSON
 {
+    "id":"0",
     "error":"expression empty"
 }
 ```
 
----
 ### 3. OperationWithoutValue
 Возникает, когда в выражение присутствует оператор, но не указанно для него значение.
 
@@ -58,11 +58,11 @@
 Ответ (Код ```422```):
 ```JSON
 {
+    "id":"0",
     "error": "operation don't have a value"
 }
 ```
 
----
 ### 4. BracketsNotFound
 Возникает, когда в выражении присутствуют открывающая и закрывающая скобка, но отсутствуют закрывающая или открывающая скобка, соответственно.
 
@@ -76,11 +76,11 @@
 Ответ (Код ```422```):
 ```JSON
 {
+    "id":"0",
     "error": "not found opened or closed bracket"
 }
 ```
 
----
 ### 5. ExpressionIncorrect
 Возникает, когда в выражении присутствуют посторонние символы.
 
@@ -94,11 +94,11 @@
 Ответ (Код ```422```):
 ```JSON
 {
+    "id":"0",
     "error": "expression incorrect"
 }
 ```
 
----
 ### 6. RequestBodyEmpty
 Возникает, когда тело запроса отсутствует.
 
@@ -110,11 +110,11 @@ curl localhost:8080/api/v1/calculate -X POST --header "application/json"
 Ответ (Код ```400```):
 ```JSON
 {
+    "id":"0",
     "error":"Request body empty"
 }
 ```
 
----
 ### 7. UnsupportedBodyType
 Возникает, когда тело запроса не в формате JSON.
 
@@ -126,6 +126,7 @@ curl localhost:8080/api/v1/calculate -X POST --header "application/json" --data 
 Ответ (Код ```415```):
 ```JSON
 {
+    "id":"0",
     "error":"Unsupported request body type"
 }
 ```
