@@ -1,0 +1,54 @@
+syntax = "proto3"; // версия proto файлов
+package orchestrator; // название пакета
+option go_package = "github.com/braginantonev/gcalc-server/proto/orchestrator";
+
+import "google/protobuf/empty.proto";
+import "google/protobuf/wrappers.proto";
+
+message Argument {
+    float value = 1;
+    string expected = 2;
+}
+
+message Task {
+    int32 id = 1;
+    Argument first_argument = 2;
+    Argument second_argument = 3;
+    string operator = 4;
+    int32 operation_time_seconds = 5;
+    string status = 6;
+    string str = 7;
+    double answer = 8;
+    string error = 9;
+}
+
+message TaskResult {
+    int32 id = 1;
+    double result = 2;
+}
+
+message SavedExpression {
+    int32 id = 1;
+    string error = 2;
+}
+
+message Expression {
+    string id = 1;
+    string status = 2;
+    string str = 3;
+    repeated Task tasks_queue = 4;
+    double result = 5;
+    string error = 6;
+}
+
+message Expressions {
+    repeated Expression expression = 1;
+}
+
+service OrchestratorService {
+    rpc GetTask (google.protobuf.StringValue) returns (Task);    // GetTask()
+    rpc SaveTaskResult (TaskResult) returns (google.protobuf.StringValue);    // SetExampleResult() - return error
+    rpc AddExpression (google.protobuf.StringValue) returns (SavedExpression); // AddExpression()
+    rpc GetExpressions (google.protobuf.Empty) returns (Expressions);   // GetExpressionsQueue()
+    rpc GetExpression (google.protobuf.StringValue) returns (Expression);    // GetExpression()
+}
