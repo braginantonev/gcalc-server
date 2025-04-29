@@ -11,7 +11,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/Antibrag/gcalc-server/pkg/calc"
+	"github.com/braginantonev/gcalc-server/pkg/calc"
 )
 
 const (

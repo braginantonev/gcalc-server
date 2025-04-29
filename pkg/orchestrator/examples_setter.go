@@ -4,7 +4,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/Antibrag/gcalc-server/pkg/calc"
+	"github.com/braginantonev/gcalc-server/pkg/calc"
 )
 
 // Получает строку с выражением

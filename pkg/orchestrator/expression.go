@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/Antibrag/gcalc-server/pkg/calc"
+	"github.com/braginantonev/gcalc-server/pkg/calc"
 )
 
 //! Оставить как минимум один поток для выполнения анализа
@@ -26,7 +26,6 @@ func (expression *Expression) setTasksQueue() error {
 	expressionStr := expression.String
 
 	for {
-
 		example, priority_idx, err := GetExample(expressionStr)
 		if err != nil {
 			return err

@@ -4,8 +4,8 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/Antibrag/gcalc-server/pkg/agent"
-	"github.com/Antibrag/gcalc-server/pkg/calc"
+	"github.com/braginantonev/gcalc-server/pkg/agent"
+	"github.com/braginantonev/gcalc-server/pkg/calc"
 )
 
 func TestSolve(t *testing.T) {

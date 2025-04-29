@@ -9,8 +9,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/Antibrag/gcalc-server/pkg/calc"
-	"github.com/Antibrag/gcalc-server/pkg/orchestrator"
+	"github.com/braginantonev/gcalc-server/pkg/calc"
+	"github.com/braginantonev/gcalc-server/pkg/orchestrator"
 )
 
 const (

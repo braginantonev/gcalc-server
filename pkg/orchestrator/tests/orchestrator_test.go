@@ -6,8 +6,8 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/Antibrag/gcalc-server/pkg/calc"
-	"github.com/Antibrag/gcalc-server/pkg/orchestrator"
+	"github.com/braginantonev/gcalc-server/pkg/calc"
+	"github.com/braginantonev/gcalc-server/pkg/orchestrator"
 )
 
 func TestGetExample(t *testing.T) {

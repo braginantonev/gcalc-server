@@ -6,8 +6,8 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/Antibrag/gcalc-server/pkg/agent"
-	"github.com/Antibrag/gcalc-server/pkg/calc"
+	"github.com/braginantonev/gcalc-server/pkg/agent"
+	"github.com/braginantonev/gcalc-server/pkg/calc"
 )
 
 // * -------------------- Config --------------------
