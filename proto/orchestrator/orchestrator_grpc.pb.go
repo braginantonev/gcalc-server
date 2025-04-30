@@ -33,8 +33,8 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type OrchestratorServiceClient interface {
 	GetTask(ctx context.Context, in *wrapperspb.StringValue, opts ...grpc.CallOption) (*Task, error)
-	SaveTaskResult(ctx context.Context, in *TaskResult, opts ...grpc.CallOption) (*wrapperspb.StringValue, error)
-	AddExpression(ctx context.Context, in *wrapperspb.StringValue, opts ...grpc.CallOption) (*SavedExpression, error)
+	SaveTaskResult(ctx context.Context, in *TaskResult, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	AddExpression(ctx context.Context, in *wrapperspb.StringValue, opts ...grpc.CallOption) (*wrapperspb.StringValue, error)
 	GetExpressions(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*Expressions, error)
 	GetExpression(ctx context.Context, in *wrapperspb.StringValue, opts ...grpc.CallOption) (*Expression, error)
 }
@@ -57,9 +57,9 @@ func (c *orchestratorServiceClient) GetTask(ctx context.Context, in *wrapperspb.
 	return out, nil
 }
 
-func (c *orchestratorServiceClient) SaveTaskResult(ctx context.Context, in *TaskResult, opts ...grpc.CallOption) (*wrapperspb.StringValue, error) {
+func (c *orchestratorServiceClient) SaveTaskResult(ctx context.Context, in *TaskResult, opts ...grpc.CallOption) (*emptypb.Empty, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(wrapperspb.StringValue)
+	out := new(emptypb.Empty)
 	err := c.cc.Invoke(ctx, OrchestratorService_SaveTaskResult_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -67,9 +67,9 @@ func (c *orchestratorServiceClient) SaveTaskResult(ctx context.Context, in *Task
 	return out, nil
 }
 
-func (c *orchestratorServiceClient) AddExpression(ctx context.Context, in *wrapperspb.StringValue, opts ...grpc.CallOption) (*SavedExpression, error) {
+func (c *orchestratorServiceClient) AddExpression(ctx context.Context, in *wrapperspb.StringValue, opts ...grpc.CallOption) (*wrapperspb.StringValue, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(SavedExpression)
+	out := new(wrapperspb.StringValue)
 	err := c.cc.Invoke(ctx, OrchestratorService_AddExpression_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -102,8 +102,8 @@ func (c *orchestratorServiceClient) GetExpression(ctx context.Context, in *wrapp
 // for forward compatibility.
 type OrchestratorServiceServer interface {
 	GetTask(context.Context, *wrapperspb.StringValue) (*Task, error)
-	SaveTaskResult(context.Context, *TaskResult) (*wrapperspb.StringValue, error)
-	AddExpression(context.Context, *wrapperspb.StringValue) (*SavedExpression, error)
+	SaveTaskResult(context.Context, *TaskResult) (*emptypb.Empty, error)
+	AddExpression(context.Context, *wrapperspb.StringValue) (*wrapperspb.StringValue, error)
 	GetExpressions(context.Context, *emptypb.Empty) (*Expressions, error)
 	GetExpression(context.Context, *wrapperspb.StringValue) (*Expression, error)
 	mustEmbedUnimplementedOrchestratorServiceServer()
@@ -119,10 +119,10 @@ type UnimplementedOrchestratorServiceServer struct{}
 func (UnimplementedOrchestratorServiceServer) GetTask(context.Context, *wrapperspb.StringValue) (*Task, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetTask not implemented")
 }
-func (UnimplementedOrchestratorServiceServer) SaveTaskResult(context.Context, *TaskResult) (*wrapperspb.StringValue, error) {
+func (UnimplementedOrchestratorServiceServer) SaveTaskResult(context.Context, *TaskResult) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SaveTaskResult not implemented")
 }
-func (UnimplementedOrchestratorServiceServer) AddExpression(context.Context, *wrapperspb.StringValue) (*SavedExpression, error) {
+func (UnimplementedOrchestratorServiceServer) AddExpression(context.Context, *wrapperspb.StringValue) (*wrapperspb.StringValue, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AddExpression not implemented")
 }
 func (UnimplementedOrchestratorServiceServer) GetExpressions(context.Context, *emptypb.Empty) (*Expressions, error) {
