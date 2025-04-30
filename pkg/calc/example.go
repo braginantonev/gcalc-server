@@ -12,15 +12,7 @@ const (
 	StatusComplete        Status = "complete"
 )
 
-type Operator rune
 
-const (
-	Plus     Operator = '+'
-	Minus    Operator = '-'
-	Multiply Operator = '*'
-	Division Operator = '/'
-	Equals   Operator = '='
-)
 
 type Argument struct {
 	Value    float64
