@@ -23,7 +23,7 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-// Example/Task status
+// Expression/Task status
 type ETStatus int32
 
 const (
@@ -235,6 +235,7 @@ type TaskResult struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	Result        float64                `protobuf:"fixed64,2,opt,name=result,proto3" json:"result,omitempty"`
+	Error         string                 `protobuf:"bytes,3,opt,name=error,proto3" json:"error,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -281,6 +282,13 @@ func (x *TaskResult) GetResult() float64 {
 		return x.Result
 	}
 	return 0
+}
+
+func (x *TaskResult) GetError() string {
+	if x != nil {
+		return x.Error
+	}
+	return ""
 }
 
 type Expression struct {
@@ -419,11 +427,12 @@ const file_proto_orchestrator_orchestrator_proto_rawDesc = "" +
 	"\x16operation_time_seconds\x18\x05 \x01(\x05R\x14operationTimeSeconds\x12.\n" +
 	"\x06status\x18\x06 \x01(\x0e2\x16.orchestrator.ETStatusR\x06status\x12\x10\n" +
 	"\x03str\x18\a \x01(\tR\x03str\x12\x16\n" +
-	"\x06answer\x18\b \x01(\x01R\x06answer\"4\n" +
+	"\x06answer\x18\b \x01(\x01R\x06answer\"J\n" +
 	"\n" +
 	"TaskResult\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x16\n" +
-	"\x06result\x18\x02 \x01(\x01R\x06result\"\xab\x01\n" +
+	"\x06result\x18\x02 \x01(\x01R\x06result\x12\x14\n" +
+	"\x05error\x18\x03 \x01(\tR\x05error\"\xab\x01\n" +
 	"\n" +
 	"Expression\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12.\n" +
