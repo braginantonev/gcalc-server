@@ -8,11 +8,11 @@ import (
 	"strings"
 
 	pb "github.com/braginantonev/gcalc-server/proto/orchestrator"
+	"google.golang.org/grpc"
 	"google.golang.org/protobuf/types/known/emptypb"
 	"google.golang.org/protobuf/types/known/wrapperspb"
 )
 
-//Todo: Исправить тесты для использования grpc
 //Todo: Протестировать сервер
 //Todo: Удалить пакет calc
 
@@ -214,6 +214,15 @@ func setTasksQueue(expression *pb.Expression) error {
 
 		expression_str = EraseExample(expression_str, example.Str, priority_idx, example.Id)
 	}
+}
+
+func Register(ctx context.Context, grpcServer *grpc.Server) error {
+	log.Println("Orchestrator: tcp listener started at port:")
+
+	orchestartorServiceServer := NewServer()
+	pb.RegisterOrchestratorServiceServer(grpcServer, orchestartorServiceServer)
+
+	return nil
 }
 
 // Старый вариант - на всякий случай
