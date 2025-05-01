@@ -3,30 +3,34 @@ package agent
 import (
 	"bytes"
 	"context"
-	"encoding/json"
 	"fmt"
-	"io"
+	"log"
 	"net/http"
 	"slices"
 	"sync"
 	"time"
 
-	"github.com/braginantonev/gcalc-server/pkg/calc"
+	"github.com/braginantonev/gcalc-server/pkg/orchestrator"
+	pb "github.com/braginantonev/gcalc-server/proto/orchestrator"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/protobuf/encoding/protojson"
+	"google.golang.org/protobuf/types/known/wrapperspb"
 )
+
+//! Оставить как минимум один поток для выполнения анализа
 
 const (
 	COMPUTING_POWER   = 5
 	TASK_WAIT_TIME_MS = 250
-	INTERNAL_TASK_URL = "http://localhost:8080/internal/task"
 )
 
-type Request struct {
-	Id     string  `json:"id"`
-	Result float64 `json:"result,omitempty"`
-	Error  string  `json:"error,omitempty"`
-}
-
-var tasks []string
+var (
+	tasks           []string
+	main_server_url string
+	conn            *grpc.ClientConn
+	orchClient      pb.OrchestratorServiceClient
+)
 
 // Return true, if task has been appended, else - false
 func appendTask(task_id string) bool {
@@ -38,124 +42,107 @@ func appendTask(task_id string) bool {
 	return true
 }
 
-func Enable(ctx context.Context) {
+func Enable(ctx context.Context, orchestrator_addr, main_server_port string) {
 	mux := sync.Mutex{}
+
+	main_server_url = fmt.Sprintf("http://localhost:%s/internal/task", main_server_port)
+
+	//Wait enable server
+	<-time.After(1 * time.Second)
+
+	var err error
+	conn, err = grpc.NewClient(orchestrator_addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		panic("Agents: could not connect to grpc server:" + err.Error())
+	}
+	defer conn.Close()
+
+	orchClient = pb.NewOrchestratorServiceClient(conn)
 
 	//! Для сервера нужно сделать очередь из запросов, для избежания получения повторных примеров
 	//Todo: Исправить наслаивание потоков
 
 	for range COMPUTING_POWER {
 		go func() {
-			//Wait enable server
-			<-time.After(1 * time.Second)
-
 			for {
 				select {
 				case <-ctx.Done():
 					return
 
 				default:
-					ex, err := GetExample()
+					task, err := orchClient.GetTask(ctx, &wrapperspb.StringValue{Value: ""})
 					if err == DHT {
 						<-time.After(TASK_WAIT_TIME_MS * time.Millisecond)
 						continue
 					}
 
 					if err != nil {
-						SendRequest(ex, err)
+						SendRequest(task, err)
 					}
 
 					mux.Lock()
-					if !appendTask(ex.Id) {
+					if !appendTask(task.Id) {
 						mux.Unlock()
 						continue
 					}
 					mux.Unlock()
 
-					if err = Solve(&ex); err != nil {
-						SendRequest(ex, err)
+					if err = Solve(task); err != nil {
+						SendRequest(task, err)
 					}
 
-					SendRequest(ex, nil)
+					SendRequest(task, nil)
 				}
 			}
 		}()
 	}
 }
 
-func GetExample() (calc.Example, error) {
-	resp, err := http.Get(INTERNAL_TASK_URL)
+func SendRequest(task *pb.Task, err error) {
+	req := &pb.TaskResult{}
 	if err != nil {
-		fmt.Println("get error", err.Error())
-		return calc.Example{}, err
-	}
-
-	if resp.StatusCode == http.StatusNotFound {
-		return calc.Example{}, DHT
-	}
-
-	resp_json := make([]byte, 1024)
-	n, err := resp.Body.Read(resp_json)
-	if err != nil && err != io.EOF {
-		fmt.Println(fmt.Sprint(resp_json))
-		return calc.Example{}, err
-	}
-	resp_json = resp_json[:n]
-
-	var example calc.Example
-	if err = json.Unmarshal(resp_json, &example); err != nil {
-		return calc.Example{}, err
-	}
-
-	return example, nil
-}
-
-func SendRequest(example calc.Example, err error) {
-	var req Request
-
-	if err != nil {
-		req.Id = example.Id
+		req.Id = task.GetId()
 		req.Error = err.Error()
 	} else {
-		req.Id = example.Id
-		req.Result = example.Answer
+		req.Id = task.GetId()
+		req.Result = task.GetAnswer()
 	}
 
-	req_json, err := json.Marshal(req)
+	req_json, err := protojson.Marshal(req)
 	if err != nil {
-		fmt.Printf("Error: SendRequest() - %s", err.Error())
+		log.Printf("Agents error: SendRequest() - %s", err.Error())
 	}
 
-	_, err = http.Post(INTERNAL_TASK_URL, "application/json", bytes.NewReader(req_json))
+	_, err = http.Post(main_server_url, "application/json", bytes.NewReader(req_json))
 	if err != nil {
-		fmt.Printf("Error: SendRequest(): %s", err.Error())
+		log.Printf("Agents error: SendRequest(): %s", err.Error())
 	}
 }
 
-func Solve(ex *calc.Example) error {
-	fmt.Println("AGENT DEBUG: solve -", *ex)
-	if ex.SecondArgument.Value == 0 && ex.Operation == calc.Division {
+func Solve(task *pb.Task) error {
+	log.Println("AGENT DEBUG: solve -", task.Str)
+	if task.SecondArgument.Value == 0 && task.Operation == orchestrator.Division.ToString() {
 		return ErrDivideByZero
 	}
 
-	<-time.After(ex.OperationTime)
+	<-time.After(time.Second * time.Duration(task.OperationTimeSeconds))
 
-	switch ex.Operation {
-	case calc.Plus:
-		ex.Answer = ex.FirstArgument.Value + ex.SecondArgument.Value
+	switch task.Operation {
+	case orchestrator.Plus.ToString():
+		task.Answer = task.FirstArgument.Value + task.SecondArgument.Value
 		return nil
 
-	case calc.Minus:
-		ex.Answer = ex.FirstArgument.Value - ex.SecondArgument.Value
+	case orchestrator.Minus.ToString():
+		task.Answer = task.FirstArgument.Value - task.SecondArgument.Value
 		return nil
 
-	case calc.Multiply:
-		ex.Answer = ex.FirstArgument.Value * ex.SecondArgument.Value
+	case orchestrator.Multiply.ToString():
+		task.Answer = task.FirstArgument.Value * task.SecondArgument.Value
 		return nil
 
-	case calc.Division:
-		ex.Answer = ex.FirstArgument.Value / ex.SecondArgument.Value
+	case orchestrator.Division.ToString():
+		task.Answer = task.FirstArgument.Value / task.SecondArgument.Value
 		return nil
 	}
-	return calc.ErrExpressionIncorrect
+	return orchestrator.ErrExpressionIncorrect
 }

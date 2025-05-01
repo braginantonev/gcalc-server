@@ -5,43 +5,44 @@ import (
 	"testing"
 
 	"github.com/braginantonev/gcalc-server/pkg/agent"
-	"github.com/braginantonev/gcalc-server/pkg/calc"
+	"github.com/braginantonev/gcalc-server/pkg/orchestrator"
+	pb "github.com/braginantonev/gcalc-server/proto/orchestrator"
 )
 
 func TestSolve(t *testing.T) {
 	cases := []struct {
 		name         string
-		example      calc.Example
+		task         *pb.Task
 		expected     float64
 		expected_err error
 	}{
 		{
 			name:         "1 + 1",
-			example:      calc.Example{FirstArgument: calc.Argument{Value: 1}, SecondArgument: calc.Argument{Value: 1}, Operation: calc.Plus},
+			task:         &pb.Task{FirstArgument: &pb.Argument{Value: 1}, SecondArgument: &pb.Argument{Value: 1}, Operation: orchestrator.Plus.ToString()},
 			expected:     2,
 			expected_err: nil,
 		},
 		{
 			name:         "1 * 1",
-			example:      calc.Example{FirstArgument: calc.Argument{Value: 1}, SecondArgument: calc.Argument{Value: 1}, Operation: calc.Multiply},
+			task:         &pb.Task{FirstArgument: &pb.Argument{Value: 1}, SecondArgument: &pb.Argument{Value: 1}, Operation: orchestrator.Multiply.ToString()},
 			expected:     1,
 			expected_err: nil,
 		},
 		{
 			name:         "divide by zero",
-			example:      calc.Example{FirstArgument: calc.Argument{Value: 0}, SecondArgument: calc.Argument{Value: 0}, Operation: calc.Division},
+			task:         &pb.Task{FirstArgument: &pb.Argument{Value: 0}, SecondArgument: &pb.Argument{Value: 0}, Operation: orchestrator.Division.ToString()},
 			expected:     0,
 			expected_err: agent.ErrDivideByZero,
 		},
 		{
 			name:         "unknown operator",
-			example:      calc.Example{FirstArgument: calc.Argument{Value: 1}, SecondArgument: calc.Argument{Value: 0}, Operation: '&'},
+			task:         &pb.Task{FirstArgument: &pb.Argument{Value: 1}, SecondArgument: &pb.Argument{Value: 0}, Operation: "&"},
 			expected:     0,
-			expected_err: calc.ErrExpressionIncorrect,
+			expected_err: orchestrator.ErrExpressionIncorrect,
 		},
 		{
 			name:         "123 + 10",
-			example:      calc.Example{FirstArgument: calc.Argument{Value: 123}, SecondArgument: calc.Argument{Value: 10}, Operation: calc.Plus},
+			task:         &pb.Task{FirstArgument: &pb.Argument{Value: 123}, SecondArgument: &pb.Argument{Value: 10}, Operation: orchestrator.Plus.ToString()},
 			expected:     133,
 			expected_err: nil,
 		},
@@ -55,9 +56,9 @@ func TestSolve(t *testing.T) {
 
 	for _, test := range cases {
 		t.Run(test.name, func(t *testing.T) {
-			err := agent.Solve(&test.example)
-			if test.example.Answer != test.expected || !errors.Is(err, test.expected_err) {
-				t.Errorf("SolveExample(%#v) = (%f, %q), but expected: (%f, %q)", test.example, test.example.Answer, err, test.expected, test.expected_err)
+			err := agent.Solve(test.task)
+			if test.task.Answer != test.expected || !errors.Is(err, test.expected_err) {
+				t.Errorf("SolveExample(%#v) = (%f, %q), but expected: (%f, %q)", test.task, test.task.Answer, err, test.expected, test.expected_err)
 			}
 		})
 	}
