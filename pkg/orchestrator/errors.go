@@ -9,7 +9,8 @@ var (
 
 	DHT error = errors.New("don't have task")
 
-	ErrExpressionNotFound error = errors.New("expression not found")
-	ErrTaskNotFound       error = errors.New("task not found")
-	ErrExpectation        error = errors.New("expectation error")
+	ErrExpressionNotFound  error = errors.New("expression not found")
+	ErrTaskNotFound        error = errors.New("task not found")
+	ErrExpectation         error = errors.New("expectation error")
+	ErrExpressionIncorrect error = errors.New("expression incorrect")
 )

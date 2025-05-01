@@ -4,7 +4,6 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/braginantonev/gcalc-server/pkg/calc"
 	pb "github.com/braginantonev/gcalc-server/proto/orchestrator"
 )
 
@@ -50,7 +49,7 @@ func GetExample(example string) (*pb.Task, int, error) {
 		value, err := strconv.ParseFloat(local_ex[1:len(local_ex)-1], 64)
 
 		if err != nil {
-			return nil, 0, calc.ErrExpressionIncorrect
+			return nil, 0, ErrExpressionIncorrect
 		}
 
 		task.FirstArgument.Value = value
@@ -65,7 +64,7 @@ func GetExample(example string) (*pb.Task, int, error) {
 
 		value, err := strconv.ParseFloat(local_ex, 64)
 		if err != nil {
-			return nil, 0, calc.ErrExpressionIncorrect
+			return nil, 0, ErrExpressionIncorrect
 		}
 
 		task.FirstArgument.Value = value
