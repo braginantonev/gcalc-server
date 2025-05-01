@@ -5,7 +5,8 @@ option go_package = "github.com/braginantonev/gcalc-server/proto/orchestrator";
 import "google/protobuf/empty.proto";
 import "google/protobuf/wrappers.proto";
 
-enum Status {
+// Expression/Task status
+enum ETStatus {
     Analyze = 0;
     Backlog = 1;
     IsWaitingValues = 2;
@@ -24,7 +25,7 @@ message Task {
     Argument second_argument = 3;
     string operation = 4;
     int32 operation_time_seconds = 5;
-    Status status = 6;
+    ETStatus status = 6;
     string str = 7;
     double answer = 8;
 }
@@ -36,7 +37,7 @@ message TaskResult {
 
 message Expression {
     string id = 1;
-    Status status = 2;
+    ETStatus status = 2;
     string str = 3;
     repeated Task tasks_queue = 4;
     double result = 5;

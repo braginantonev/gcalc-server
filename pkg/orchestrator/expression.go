@@ -63,9 +63,9 @@ func (s *Server) GetTask(ctx context.Context, id *wrapperspb.StringValue) (*pb.T
 		p_expression := expressionsQueue[expId]
 		for i := range p_expression.TasksQueue {
 			p_task := p_expression.TasksQueue[i]
-			if p_task.Status == pb.Status_Backlog {
-				p_task.Status = pb.Status_InProgress
-				p_expression.Status = pb.Status_InProgress
+			if p_task.Status == pb.ETStatus_Backlog {
+				p_task.Status = pb.ETStatus_InProgress
+				p_expression.Status = pb.ETStatus_InProgress
 				return p_task, nil
 			}
 		}
@@ -89,7 +89,7 @@ func (s *Server) SaveTaskResult(ctx context.Context, result *pb.TaskResult) (*em
 		return nil, err
 	}
 
-	if p_task.Status == pb.Status_Complete {
+	if p_task.Status == pb.ETStatus_Complete {
 		log.Println("task", result.Id, "already complete")
 		return nil, nil
 	}
@@ -106,11 +106,11 @@ func (s *Server) SaveTaskResult(ctx context.Context, result *pb.TaskResult) (*em
 	}
 
 	p_task.Answer = result.GetResult()
-	p_task.Status = pb.Status_Complete
+	p_task.Status = pb.ETStatus_Complete
 
 	if task_id == len(p_expression.TasksQueue)-1 {
 		p_expression.Result = result.GetResult()
-		p_expression.Status = pb.Status_Complete
+		p_expression.Status = pb.ETStatus_Complete
 		return nil, nil
 	}
 
@@ -131,7 +131,7 @@ func (s *Server) SaveTaskResult(ctx context.Context, result *pb.TaskResult) (*em
 		delExpectation(p_task_local.SecondArgument)
 
 		if p_task_local.FirstArgument.Expected == "" && p_task_local.SecondArgument.Expected == "" {
-			p_task_local.Status = pb.Status_Backlog
+			p_task_local.Status = pb.ETStatus_Backlog
 		}
 	}
 
@@ -149,7 +149,7 @@ func (s *Server) AddExpression(ctx context.Context, expression *wrapperspb.Strin
 		//!!! Если придётся реализовывать удаление выражения, то нужно изменить систему выдачи индекса !!!
 		//!!! При удалении элемента, длина уменьшается, следовательно следующее добавленное выражение, будет иметь такой же индекс, что и предпоследний !!!
 		Id:     fmt.Sprint(len(expressionsQueue)),
-		Status: pb.Status_Analyze,
+		Status: pb.ETStatus_Analyze,
 		Str:    expression_str,
 	}
 
@@ -169,7 +169,7 @@ func (s *Server) GetExpression(ctx context.Context, id *wrapperspb.StringValue) 
 	id_str := id.GetValue()
 	if id_str == "" {
 		for _, expression := range expressionsQueue {
-			if expression.Status == pb.Status_InProgress || expression.Status == pb.Status_Backlog {
+			if expression.Status == pb.ETStatus_InProgress || expression.Status == pb.ETStatus_Backlog {
 				return expression, nil
 			}
 		}
@@ -195,7 +195,7 @@ func setTasksQueue(expression *pb.Expression) error {
 		}
 
 		if example.Str == END_STR {
-			expression.Status = pb.Status_Backlog
+			expression.Status = pb.ETStatus_Backlog
 			return nil
 		}
 
@@ -206,8 +206,8 @@ func setTasksQueue(expression *pb.Expression) error {
 
 		example.Id = expression.Id + "_" + fmt.Sprint(len(expression.TasksQueue))
 
-		if example.Status != pb.Status_IsWaitingValues {
-			example.Status = pb.Status_Backlog
+		if example.Status != pb.ETStatus_IsWaitingValues {
+			example.Status = pb.ETStatus_Backlog
 		}
 
 		expression.TasksQueue = append(expression.TasksQueue, example)

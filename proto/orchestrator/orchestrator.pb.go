@@ -23,26 +23,27 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-type Status int32
+// Example/Task status
+type ETStatus int32
 
 const (
-	Status_Analyze         Status = 0
-	Status_Backlog         Status = 1
-	Status_IsWaitingValues Status = 2
-	Status_InProgress      Status = 3
-	Status_Complete        Status = 4
+	ETStatus_Analyze         ETStatus = 0
+	ETStatus_Backlog         ETStatus = 1
+	ETStatus_IsWaitingValues ETStatus = 2
+	ETStatus_InProgress      ETStatus = 3
+	ETStatus_Complete        ETStatus = 4
 )
 
-// Enum value maps for Status.
+// Enum value maps for ETStatus.
 var (
-	Status_name = map[int32]string{
+	ETStatus_name = map[int32]string{
 		0: "Analyze",
 		1: "Backlog",
 		2: "IsWaitingValues",
 		3: "InProgress",
 		4: "Complete",
 	}
-	Status_value = map[string]int32{
+	ETStatus_value = map[string]int32{
 		"Analyze":         0,
 		"Backlog":         1,
 		"IsWaitingValues": 2,
@@ -51,30 +52,30 @@ var (
 	}
 )
 
-func (x Status) Enum() *Status {
-	p := new(Status)
+func (x ETStatus) Enum() *ETStatus {
+	p := new(ETStatus)
 	*p = x
 	return p
 }
 
-func (x Status) String() string {
+func (x ETStatus) String() string {
 	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
 }
 
-func (Status) Descriptor() protoreflect.EnumDescriptor {
+func (ETStatus) Descriptor() protoreflect.EnumDescriptor {
 	return file_proto_orchestrator_orchestrator_proto_enumTypes[0].Descriptor()
 }
 
-func (Status) Type() protoreflect.EnumType {
+func (ETStatus) Type() protoreflect.EnumType {
 	return &file_proto_orchestrator_orchestrator_proto_enumTypes[0]
 }
 
-func (x Status) Number() protoreflect.EnumNumber {
+func (x ETStatus) Number() protoreflect.EnumNumber {
 	return protoreflect.EnumNumber(x)
 }
 
-// Deprecated: Use Status.Descriptor instead.
-func (Status) EnumDescriptor() ([]byte, []int) {
+// Deprecated: Use ETStatus.Descriptor instead.
+func (ETStatus) EnumDescriptor() ([]byte, []int) {
 	return file_proto_orchestrator_orchestrator_proto_rawDescGZIP(), []int{0}
 }
 
@@ -137,7 +138,7 @@ type Task struct {
 	SecondArgument       *Argument              `protobuf:"bytes,3,opt,name=second_argument,json=secondArgument,proto3" json:"second_argument,omitempty"`
 	Operation            string                 `protobuf:"bytes,4,opt,name=operation,proto3" json:"operation,omitempty"`
 	OperationTimeSeconds int32                  `protobuf:"varint,5,opt,name=operation_time_seconds,json=operationTimeSeconds,proto3" json:"operation_time_seconds,omitempty"`
-	Status               Status                 `protobuf:"varint,6,opt,name=status,proto3,enum=orchestrator.Status" json:"status,omitempty"`
+	Status               ETStatus               `protobuf:"varint,6,opt,name=status,proto3,enum=orchestrator.ETStatus" json:"status,omitempty"`
 	Str                  string                 `protobuf:"bytes,7,opt,name=str,proto3" json:"str,omitempty"`
 	Answer               float64                `protobuf:"fixed64,8,opt,name=answer,proto3" json:"answer,omitempty"`
 	unknownFields        protoimpl.UnknownFields
@@ -209,11 +210,11 @@ func (x *Task) GetOperationTimeSeconds() int32 {
 	return 0
 }
 
-func (x *Task) GetStatus() Status {
+func (x *Task) GetStatus() ETStatus {
 	if x != nil {
 		return x.Status
 	}
-	return Status_Analyze
+	return ETStatus_Analyze
 }
 
 func (x *Task) GetStr() string {
@@ -285,7 +286,7 @@ func (x *TaskResult) GetResult() float64 {
 type Expression struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	Status        Status                 `protobuf:"varint,2,opt,name=status,proto3,enum=orchestrator.Status" json:"status,omitempty"`
+	Status        ETStatus               `protobuf:"varint,2,opt,name=status,proto3,enum=orchestrator.ETStatus" json:"status,omitempty"`
 	Str           string                 `protobuf:"bytes,3,opt,name=str,proto3" json:"str,omitempty"`
 	TasksQueue    []*Task                `protobuf:"bytes,4,rep,name=tasks_queue,json=tasksQueue,proto3" json:"tasks_queue,omitempty"`
 	Result        float64                `protobuf:"fixed64,5,opt,name=result,proto3" json:"result,omitempty"`
@@ -330,11 +331,11 @@ func (x *Expression) GetId() string {
 	return ""
 }
 
-func (x *Expression) GetStatus() Status {
+func (x *Expression) GetStatus() ETStatus {
 	if x != nil {
 		return x.Status
 	}
-	return Status_Analyze
+	return ETStatus_Analyze
 }
 
 func (x *Expression) GetStr() string {
@@ -409,31 +410,31 @@ const file_proto_orchestrator_orchestrator_proto_rawDesc = "" +
 	"%proto/orchestrator/orchestrator.proto\x12\forchestrator\x1a\x1bgoogle/protobuf/empty.proto\x1a\x1egoogle/protobuf/wrappers.proto\"<\n" +
 	"\bArgument\x12\x14\n" +
 	"\x05value\x18\x01 \x01(\x01R\x05value\x12\x1a\n" +
-	"\bexpected\x18\x02 \x01(\tR\bexpected\"\xc2\x02\n" +
+	"\bexpected\x18\x02 \x01(\tR\bexpected\"\xc4\x02\n" +
 	"\x04Task\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12=\n" +
 	"\x0efirst_argument\x18\x02 \x01(\v2\x16.orchestrator.ArgumentR\rfirstArgument\x12?\n" +
 	"\x0fsecond_argument\x18\x03 \x01(\v2\x16.orchestrator.ArgumentR\x0esecondArgument\x12\x1c\n" +
 	"\toperation\x18\x04 \x01(\tR\toperation\x124\n" +
-	"\x16operation_time_seconds\x18\x05 \x01(\x05R\x14operationTimeSeconds\x12,\n" +
-	"\x06status\x18\x06 \x01(\x0e2\x14.orchestrator.StatusR\x06status\x12\x10\n" +
+	"\x16operation_time_seconds\x18\x05 \x01(\x05R\x14operationTimeSeconds\x12.\n" +
+	"\x06status\x18\x06 \x01(\x0e2\x16.orchestrator.ETStatusR\x06status\x12\x10\n" +
 	"\x03str\x18\a \x01(\tR\x03str\x12\x16\n" +
 	"\x06answer\x18\b \x01(\x01R\x06answer\"4\n" +
 	"\n" +
 	"TaskResult\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x16\n" +
-	"\x06result\x18\x02 \x01(\x01R\x06result\"\xa9\x01\n" +
+	"\x06result\x18\x02 \x01(\x01R\x06result\"\xab\x01\n" +
 	"\n" +
 	"Expression\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id\x12,\n" +
-	"\x06status\x18\x02 \x01(\x0e2\x14.orchestrator.StatusR\x06status\x12\x10\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12.\n" +
+	"\x06status\x18\x02 \x01(\x0e2\x16.orchestrator.ETStatusR\x06status\x12\x10\n" +
 	"\x03str\x18\x03 \x01(\tR\x03str\x123\n" +
 	"\vtasks_queue\x18\x04 \x03(\v2\x12.orchestrator.TaskR\n" +
 	"tasksQueue\x12\x16\n" +
 	"\x06result\x18\x05 \x01(\x01R\x06result\"=\n" +
 	"\vExpressions\x12.\n" +
-	"\x05queue\x18\x01 \x03(\v2\x18.orchestrator.ExpressionR\x05queue*U\n" +
-	"\x06Status\x12\v\n" +
+	"\x05queue\x18\x01 \x03(\v2\x18.orchestrator.ExpressionR\x05queue*W\n" +
+	"\bETStatus\x12\v\n" +
 	"\aAnalyze\x10\x00\x12\v\n" +
 	"\aBacklog\x10\x01\x12\x13\n" +
 	"\x0fIsWaitingValues\x10\x02\x12\x0e\n" +
@@ -462,7 +463,7 @@ func file_proto_orchestrator_orchestrator_proto_rawDescGZIP() []byte {
 var file_proto_orchestrator_orchestrator_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
 var file_proto_orchestrator_orchestrator_proto_msgTypes = make([]protoimpl.MessageInfo, 5)
 var file_proto_orchestrator_orchestrator_proto_goTypes = []any{
-	(Status)(0),                    // 0: orchestrator.Status
+	(ETStatus)(0),                  // 0: orchestrator.ETStatus
 	(*Argument)(nil),               // 1: orchestrator.Argument
 	(*Task)(nil),                   // 2: orchestrator.Task
 	(*TaskResult)(nil),             // 3: orchestrator.TaskResult
@@ -474,8 +475,8 @@ var file_proto_orchestrator_orchestrator_proto_goTypes = []any{
 var file_proto_orchestrator_orchestrator_proto_depIdxs = []int32{
 	1,  // 0: orchestrator.Task.first_argument:type_name -> orchestrator.Argument
 	1,  // 1: orchestrator.Task.second_argument:type_name -> orchestrator.Argument
-	0,  // 2: orchestrator.Task.status:type_name -> orchestrator.Status
-	0,  // 3: orchestrator.Expression.status:type_name -> orchestrator.Status
+	0,  // 2: orchestrator.Task.status:type_name -> orchestrator.ETStatus
+	0,  // 3: orchestrator.Expression.status:type_name -> orchestrator.ETStatus
 	2,  // 4: orchestrator.Expression.tasks_queue:type_name -> orchestrator.Task
 	4,  // 5: orchestrator.Expressions.queue:type_name -> orchestrator.Expression
 	6,  // 6: orchestrator.OrchestratorService.GetTask:input_type -> google.protobuf.StringValue

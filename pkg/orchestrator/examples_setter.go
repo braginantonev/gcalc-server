@@ -12,6 +12,7 @@ import (
 
 // Получает строку с выражением
 func GetExample(example string) (*pb.Task, int, error) {
+	task := pb.NewTask()
 	local_ex := example
 	begin, end := -1, -1
 
@@ -41,7 +42,9 @@ func GetExample(example string) (*pb.Task, int, error) {
 		actionIdx = strings.IndexAny(local_ex, op)
 	} else if strings.ContainsAny(local_ex, "()") {
 		if strings.Contains(local_ex, "id:") {
-			return &pb.Task{Operation: Equals.ToString(), Str: local_ex}, strings.IndexRune(example, rune(local_ex[0])), nil
+			task.Operation = Equals.ToString()
+			task.Str = local_ex
+			return task, strings.IndexRune(example, rune(local_ex[0])), nil
 		}
 
 		value, err := strconv.ParseFloat(local_ex[1:len(local_ex)-1], 64)
@@ -49,25 +52,33 @@ func GetExample(example string) (*pb.Task, int, error) {
 		if err != nil {
 			return nil, 0, calc.ErrExpressionIncorrect
 		}
-		return &pb.Task{FirstArgument: &pb.Argument{Value: value}, Operation: Equals.ToString(), Str: local_ex[:]}, strings.IndexRune(example, rune(local_ex[0])), nil
+
+		task.FirstArgument.Value = value
+		task.Operation = Equals.ToString()
+		task.Str = local_ex
+		return task, strings.IndexRune(example, rune(local_ex[0])), nil
 	} else {
 		if strings.Contains(local_ex, "id:") {
-			return &pb.Task{Str: END_STR}, 0, nil
+			task.Str = END_STR
+			return task, 0, nil
 		}
 
 		value, err := strconv.ParseFloat(local_ex, 64)
 		if err != nil {
 			return nil, 0, calc.ErrExpressionIncorrect
 		}
-		return &pb.Task{FirstArgument: &pb.Argument{Value: value}, Operation: Equals.ToString(), Str: END_STR}, 0, nil
+
+		task.FirstArgument.Value = value
+		task.Operation = Equals.ToString()
+		task.Str = END_STR
+		return task, 0, nil
 	}
 
 	if actionIdx == 0 || actionIdx == len(local_ex)-1 {
 		return nil, 0, ErrOperationWithoutValue
 	}
 
-	ex := pb.Task{}
-	ex.Operation = Operator(local_ex[actionIdx]).ToString() // Хз, зачем я конвертирую сначала в оператор, а потом в строку. Пусть будет на всякий, хоть и фигня
+	task.Operation = Operator(local_ex[actionIdx]).ToString() // Хз, зачем я конвертирую сначала в оператор, а потом в строку. Пусть будет на всякий, хоть и фигня
 
 	// ---- Нахождение концов двух чисел ----
 	var exampleLen = len(local_ex)
@@ -78,7 +89,7 @@ func GetExample(example string) (*pb.Task, int, error) {
 	convertArgument := func(arg *pb.Argument, str string) (err error) {
 		if strings.Contains(str, "id:") {
 			arg.Expected = str[3:]
-			ex.Status = pb.Status_IsWaitingValues
+			task.Status = pb.ETStatus_IsWaitingValues
 		} else {
 			arg.Value, err = strconv.ParseFloat(str, 64)
 		}
@@ -98,7 +109,7 @@ func GetExample(example string) (*pb.Task, int, error) {
 		}
 	}
 
-	if err := convertArgument(ex.FirstArgument, str_firstValue); err != nil {
+	if err := convertArgument(task.FirstArgument, str_firstValue); err != nil {
 		return nil, 0, err
 	}
 
@@ -114,12 +125,12 @@ func GetExample(example string) (*pb.Task, int, error) {
 		}
 	}
 
-	if err := convertArgument(ex.SecondArgument, str_secondValue); err != nil {
+	if err := convertArgument(task.SecondArgument, str_secondValue); err != nil {
 		return nil, 0, err
 	}
 
-	ex.Str = local_ex[begin:end]
-	return &ex, strings.IndexRune(example, rune(local_ex[0])), nil
+	task.Str = local_ex[begin:end]
+	return task, strings.IndexRune(example, rune(local_ex[0])), nil
 }
 
 // Заменяет выражение на его ответ
