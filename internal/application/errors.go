@@ -4,7 +4,6 @@ import (
 	"errors"
 
 	"github.com/braginantonev/gcalc-server/pkg/agent"
-	"github.com/braginantonev/gcalc-server/pkg/calc"
 	"github.com/braginantonev/gcalc-server/pkg/orchestrator"
 )
 
@@ -20,11 +19,11 @@ var (
 		&orchestrator.ErrExpressionNotFound,
 		&orchestrator.ErrTaskNotFound,
 		&orchestrator.ErrExpectation,
-		&calc.ErrExpressionIncorrect,
+		&orchestrator.ErrExpressionIncorrect,
 	}
 
 	AgentErrors []*error = []*error{
-		&calc.ErrExpressionIncorrect,
+		&orchestrator.ErrExpressionIncorrect,
 		&agent.ErrDivideByZero,
 	}
 )
