@@ -14,7 +14,6 @@ import (
 )
 
 //Todo: Протестировать сервер
-//Todo: Удалить пакет calc
 
 type Operator string
 
@@ -50,7 +49,7 @@ func (s *Server) GetTask(ctx context.Context, id *wrapperspb.StringValue) (*pb.T
 			return nil, DHT
 		}
 
-		expId, err := strconv.Atoi(expression_local.Id)
+		expId, err := strconv.Atoi(expression_local.GetId())
 		if err != nil {
 			return nil, err
 		}
@@ -63,7 +62,7 @@ func (s *Server) GetTask(ctx context.Context, id *wrapperspb.StringValue) (*pb.T
 		p_expression := expressionsQueue[expId]
 		for i := range p_expression.TasksQueue {
 			p_task := p_expression.TasksQueue[i]
-			if p_task.Status == pb.ETStatus_Backlog {
+			if p_task.GetStatus() == pb.ETStatus_Backlog {
 				p_task.Status = pb.ETStatus_InProgress
 				p_expression.Status = pb.ETStatus_InProgress
 				return p_task, nil
@@ -74,7 +73,7 @@ func (s *Server) GetTask(ctx context.Context, id *wrapperspb.StringValue) (*pb.T
 
 	for _, p_expression := range expressionsQueue {
 		for _, p_task := range p_expression.TasksQueue {
-			if p_task.Id == id_str {
+			if p_task.GetId() == id_str {
 				return p_task, nil
 			}
 		}
@@ -84,23 +83,23 @@ func (s *Server) GetTask(ctx context.Context, id *wrapperspb.StringValue) (*pb.T
 }
 
 func (s *Server) SaveTaskResult(ctx context.Context, result *pb.TaskResult) (*emptypb.Empty, error) {
-	p_task, err := s.GetTask(ctx, &wrapperspb.StringValue{Value: result.Id})
+	p_task, err := s.GetTask(ctx, wrapperspb.String(result.GetId()))
 	if err != nil {
 		return nil, err
 	}
 
-	if p_task.Status == pb.ETStatus_Complete {
+	if p_task.GetStatus() == pb.ETStatus_Complete {
 		log.Println("task", result.Id, "already complete")
 		return nil, nil
 	}
 
-	task_low_line_idx := strings.IndexRune(p_task.Id, '_')
-	p_expression, err := s.GetExpression(ctx, &wrapperspb.StringValue{Value: p_task.Id[:task_low_line_idx]})
+	task_low_line_idx := strings.IndexRune(p_task.GetId(), '_')
+	p_expression, err := s.GetExpression(ctx, wrapperspb.String(p_task.GetId()[:task_low_line_idx]))
 	if err != nil {
 		return nil, err
 	}
 
-	task_id, err := strconv.Atoi(p_task.Id[task_low_line_idx+1:])
+	task_id, err := strconv.Atoi(p_task.GetId()[task_low_line_idx+1:])
 	if err != nil {
 		return nil, err
 	}
@@ -108,7 +107,7 @@ func (s *Server) SaveTaskResult(ctx context.Context, result *pb.TaskResult) (*em
 	p_task.Answer = result.GetResult()
 	p_task.Status = pb.ETStatus_Complete
 
-	if task_id == len(p_expression.TasksQueue)-1 {
+	if task_id == len(p_expression.GetTasksQueue())-1 {
 		p_expression.Result = result.GetResult()
 		p_expression.Status = pb.ETStatus_Complete
 		return nil, nil
@@ -116,21 +115,21 @@ func (s *Server) SaveTaskResult(ctx context.Context, result *pb.TaskResult) (*em
 
 	// Return true, if example result expected
 	delExpectation := func(arg *pb.Argument) {
-		if arg.Expected == p_task.Id {
+		if arg.GetExpected() == p_task.Id {
 			arg.Value = result.GetResult()
 			arg.Expected = ""
 		}
 	}
 
-	for _, p_task_local := range p_expression.TasksQueue {
-		if p_task.Id == p_task_local.Id {
+	for _, p_task_local := range p_expression.GetTasksQueue() {
+		if p_task.GetId() == p_task_local.GetId() {
 			continue
 		}
 
-		delExpectation(p_task_local.FirstArgument)
-		delExpectation(p_task_local.SecondArgument)
+		delExpectation(p_task_local.GetFirstArgument())
+		delExpectation(p_task_local.GetSecondArgument())
 
-		if p_task_local.FirstArgument.Expected == "" && p_task_local.SecondArgument.Expected == "" {
+		if p_task_local.FirstArgument.GetExpected() == "" && p_task_local.SecondArgument.GetExpected() == "" {
 			p_task_local.Status = pb.ETStatus_Backlog
 		}
 	}
@@ -158,7 +157,7 @@ func (s *Server) AddExpression(ctx context.Context, expression *wrapperspb.Strin
 	}
 
 	expressionsQueue = append(expressionsQueue, &ex)
-	return &wrapperspb.StringValue{Value: ex.Id}, nil
+	return wrapperspb.String(ex.GetId()), nil
 }
 
 func (s *Server) GetExpressions(ctx context.Context, empty *emptypb.Empty) (*pb.Expressions, error) {
@@ -169,7 +168,8 @@ func (s *Server) GetExpression(ctx context.Context, id *wrapperspb.StringValue) 
 	id_str := id.GetValue()
 	if id_str == "" {
 		for _, expression := range expressionsQueue {
-			if expression.Status == pb.ETStatus_InProgress || expression.Status == pb.ETStatus_Backlog {
+			expression_status := expression.GetStatus()
+			if expression_status == pb.ETStatus_InProgress || expression_status == pb.ETStatus_Backlog {
 				return expression, nil
 			}
 		}
@@ -177,7 +177,7 @@ func (s *Server) GetExpression(ctx context.Context, id *wrapperspb.StringValue) 
 	}
 
 	for _, expression := range expressionsQueue {
-		if expression.Id == id_str {
+		if expression.GetId() == id_str {
 			return expression, nil
 		}
 	}
@@ -186,33 +186,34 @@ func (s *Server) GetExpression(ctx context.Context, id *wrapperspb.StringValue) 
 }
 
 func setTasksQueue(expression *pb.Expression) error {
-	expression_str := expression.Str
+	expression_str := expression.GetStr()
 
 	for {
-		example, priority_idx, err := GetExample(expression_str)
+		task, priority_idx, err := GetTask(expression_str)
 		if err != nil {
 			return err
 		}
 
-		if example.Str == END_STR {
+		task_str := task.GetStr()
+		if task_str == END_STR {
 			expression.Status = pb.ETStatus_Backlog
 			return nil
 		}
 
-		if example.Operation == Equals.ToString() {
-			expression_str = EraseExample(expression_str, example.Str, priority_idx, expression.TasksQueue[len(expression.TasksQueue)-1].Id)
+		if task.GetOperation() == Equals.ToString() {
+			expression_str = EraseExample(expression_str, task_str, priority_idx, expression.TasksQueue[len(expression.TasksQueue)-1].Id)
 			continue
 		}
 
-		example.Id = expression.Id + "_" + fmt.Sprint(len(expression.TasksQueue))
+		task.Id = expression.GetId() + "_" + fmt.Sprint(len(expression.GetTasksQueue()))
 
-		if example.Status != pb.ETStatus_IsWaitingValues {
-			example.Status = pb.ETStatus_Backlog
+		if task.GetStatus() != pb.ETStatus_IsWaitingValues {
+			task.Status = pb.ETStatus_Backlog
 		}
 
-		expression.TasksQueue = append(expression.TasksQueue, example)
+		expression.TasksQueue = append(expression.GetTasksQueue(), task)
 
-		expression_str = EraseExample(expression_str, example.Str, priority_idx, example.Id)
+		expression_str = EraseExample(expression_str, task.GetStr(), priority_idx, task.GetId())
 	}
 }
 

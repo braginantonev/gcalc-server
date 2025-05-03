@@ -79,7 +79,7 @@ func TestGetExample(t *testing.T) {
 
 	for _, test := range cases {
 		t.Run(test.name, func(t *testing.T) {
-			gotExample, _, err := orchestrator.GetExample(test.example)
+			gotExample, _, err := orchestrator.GetTask(test.example)
 			if err != nil {
 				t.Error(err)
 			}
@@ -116,7 +116,7 @@ func TestEraseExample(t *testing.T) {
 
 	for _, test := range cases {
 		t.Run(test.name, func(t *testing.T) {
-			gotExample, pri_idx, err := orchestrator.GetExample(test.example)
+			gotExample, pri_idx, err := orchestrator.GetTask(test.example)
 			if err != nil {
 				t.Error(err)
 			}

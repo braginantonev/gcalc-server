@@ -7,10 +7,8 @@ import (
 	pb "github.com/braginantonev/gcalc-server/proto/orchestrator"
 )
 
-//Todo: Протестировать изменение Example на Task grpc
-
 // Получает строку с выражением
-func GetExample(example string) (*pb.Task, int, error) {
+func GetTask(example string) (*pb.Task, int, error) {
 	task := pb.NewTask()
 	local_ex := example
 	begin, end := -1, -1
@@ -108,7 +106,7 @@ func GetExample(example string) (*pb.Task, int, error) {
 		}
 	}
 
-	if err := convertArgument(task.FirstArgument, str_firstValue); err != nil {
+	if err := convertArgument(task.GetFirstArgument(), str_firstValue); err != nil {
 		return nil, 0, err
 	}
 
@@ -124,7 +122,7 @@ func GetExample(example string) (*pb.Task, int, error) {
 		}
 	}
 
-	if err := convertArgument(task.SecondArgument, str_secondValue); err != nil {
+	if err := convertArgument(task.GetSecondArgument(), str_secondValue); err != nil {
 		return nil, 0, err
 	}
 
