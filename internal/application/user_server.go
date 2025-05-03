@@ -1,6 +1,7 @@
 package application
 
 import (
+	"context"
 	"encoding/json"
 	"io"
 	"log/slog"
@@ -8,51 +9,16 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/Antibrag/gcalc-server/pkg/orchestrator"
+	"google.golang.org/protobuf/types/known/emptypb"
+	"google.golang.org/protobuf/types/known/wrapperspb"
 )
+
+var expression []byte
 
 func logFailedConvert(handler_name, resp_json string, w *http.ResponseWriter) {
 	(*w).WriteHeader(http.StatusInternalServerError)
 	slog.Error("Failed convert response to JSON", slog.String("handler_name", handler_name))
 	slog.Debug("expression:", string(expression), "\nresponse json:", resp_json)
-}
-
-func AddExpressionHandler(w http.ResponseWriter, r *http.Request) {
-	req := RequestExpression{}
-	err := json.Unmarshal(expression, &req)
-	if err != nil {
-		slog.Error("Failed unmarshal expression json.", slog.String("error", err.Error()))
-		w.WriteHeader(http.StatusUnsupportedMediaType)
-		return
-	}
-
-	id, err := orchestrator.AddExpression(req.Expression)
-	slog.Info("add expression to queue. ", slog.String("id", id))
-
-	if err != nil {
-		slog.Error("Failed add expression. ", slog.String("error", err.Error()))
-
-		if slices.Contains(OrchestratorErrors, &err) {
-			w.WriteHeader(http.StatusInternalServerError)
-		} else {
-			w.WriteHeader(http.StatusUnprocessableEntity)
-		}
-		return
-	}
-
-	resp := ResponseExpression{
-		Id: id,
-	}
-
-	resp_json, err := json.Marshal(resp)
-	if err != nil {
-		logFailedConvert("AddExpressionHandler()", string(resp_json), &w)
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusCreated)
-	w.Write(resp_json)
 }
 
 func RequestEmpty(fn http.HandlerFunc) http.HandlerFunc {
@@ -78,19 +44,62 @@ func RequestEmpty(fn http.HandlerFunc) http.HandlerFunc {
 	})
 }
 
+func AddExpressionHandler(w http.ResponseWriter, r *http.Request) {
+	req := RequestExpression{}
+	err := json.Unmarshal(expression, &req)
+	if err != nil {
+		slog.Error("Failed unmarshal expression json.", slog.String("error", err.Error()))
+		w.WriteHeader(http.StatusUnsupportedMediaType)
+		return
+	}
+
+	id, err := OrchestratorServiceClient.AddExpression(context.TODO(), wrapperspb.String(req.Expression))
+	slog.Info("add expression to queue. ", slog.String("id", id.GetValue()))
+
+	if err != nil {
+		slog.Error("Failed add expression. ", slog.String("error", err.Error()))
+
+		if slices.Contains(OrchestratorErrors, &err) {
+			w.WriteHeader(http.StatusInternalServerError)
+		} else {
+			w.WriteHeader(http.StatusUnprocessableEntity)
+		}
+		return
+	}
+
+	resp := ResponseExpression{
+		Id: id.GetValue(),
+	}
+
+	resp_json, err := json.Marshal(resp)
+	if err != nil {
+		logFailedConvert("AddExpressionHandler()", string(resp_json), &w)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+	w.Write(resp_json)
+}
+
 func GetExpressionsQueueHandler(w http.ResponseWriter, r *http.Request) {
 	slog.Info("request - get expressions queue")
 
-	expressions := orchestrator.GetExpressionsQueue()
+	expressions, err := OrchestratorServiceClient.GetExpressions(context.TODO(), &emptypb.Empty{})
+	if err != nil {
+		slog.Error(err.Error())
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 
 	var resp struct {
 		Expressions []ResponseExpression `json:"expressions"`
 	}
 
-	for _, exp := range expressions {
+	for _, exp := range expressions.GetQueue() {
 		resp.Expressions = append(resp.Expressions, ResponseExpression{
 			Id:     exp.Id,
-			Status: exp.Status,
+			Status: exp.Status.String(),
 			Result: exp.Result,
 		})
 	}
@@ -112,9 +121,9 @@ func GetExpressionHandler(w http.ResponseWriter, r *http.Request) {
 
 	slog.Info("request - get expression.", slog.String("id", id))
 
-	exp, err := orchestrator.GetExpression(id)
+	exp, err := OrchestratorServiceClient.GetExpression(context.TODO(), wrapperspb.String(id))
 	if err != nil {
-		slog.Error("expression not found", slog.String("id", id))
+		slog.Error("expression not found", slog.String("id", id), slog.String("err", err.Error()))
 		w.WriteHeader(http.StatusNotFound)
 		return
 	}
@@ -124,7 +133,7 @@ func GetExpressionHandler(w http.ResponseWriter, r *http.Request) {
 	}{
 		Expression: ResponseExpression{
 			Id:     exp.Id,
-			Status: exp.Status,
+			Status: exp.Status.String(),
 			Result: exp.Result,
 		},
 	}

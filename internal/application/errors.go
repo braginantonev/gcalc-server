@@ -3,9 +3,8 @@ package application
 import (
 	"errors"
 
-	"github.com/Antibrag/gcalc-server/pkg/agent"
-	"github.com/Antibrag/gcalc-server/pkg/calc"
-	"github.com/Antibrag/gcalc-server/pkg/orchestrator"
+	"github.com/braginantonev/gcalc-server/pkg/agent"
+	"github.com/braginantonev/gcalc-server/pkg/orchestrator"
 )
 
 var (
@@ -20,11 +19,11 @@ var (
 		&orchestrator.ErrExpressionNotFound,
 		&orchestrator.ErrTaskNotFound,
 		&orchestrator.ErrExpectation,
-		&calc.ErrExpressionIncorrect,
+		&orchestrator.ErrExpressionIncorrect,
 	}
 
 	AgentErrors []*error = []*error{
-		&calc.ErrExpressionIncorrect,
+		&orchestrator.ErrExpressionIncorrect,
 		&agent.ErrDivideByZero,
 	}
 )

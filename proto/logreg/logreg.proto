@@ -1,0 +1,3 @@
+syntax = "proto3"; // версия proto файлов
+package logreg; // название пакета
+option go_package = "github.com/braginantonev/gcalc-server/proto/logreg";
