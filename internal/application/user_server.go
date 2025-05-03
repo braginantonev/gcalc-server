@@ -53,7 +53,7 @@ func AddExpressionHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	id, err := OrchestratorServiceClient.AddExpression(context.TODO(), &wrapperspb.StringValue{Value: req.Expression})
+	id, err := OrchestratorServiceClient.AddExpression(context.TODO(), wrapperspb.String(req.Expression))
 	slog.Info("add expression to queue. ", slog.String("id", id.GetValue()))
 
 	if err != nil {
@@ -99,7 +99,7 @@ func GetExpressionsQueueHandler(w http.ResponseWriter, r *http.Request) {
 	for _, exp := range expressions.GetQueue() {
 		resp.Expressions = append(resp.Expressions, ResponseExpression{
 			Id:     exp.Id,
-			Status: exp.Status,
+			Status: exp.Status.String(),
 			Result: exp.Result,
 		})
 	}
@@ -121,7 +121,7 @@ func GetExpressionHandler(w http.ResponseWriter, r *http.Request) {
 
 	slog.Info("request - get expression.", slog.String("id", id))
 
-	exp, err := OrchestratorServiceClient.GetExpression(context.TODO(), &wrapperspb.StringValue{Value: id})
+	exp, err := OrchestratorServiceClient.GetExpression(context.TODO(), wrapperspb.String(id))
 	if err != nil {
 		slog.Error("expression not found", slog.String("id", id), slog.String("err", err.Error()))
 		w.WriteHeader(http.StatusNotFound)
@@ -133,7 +133,7 @@ func GetExpressionHandler(w http.ResponseWriter, r *http.Request) {
 	}{
 		Expression: ResponseExpression{
 			Id:     exp.Id,
-			Status: exp.Status,
+			Status: exp.Status.String(),
 			Result: exp.Result,
 		},
 	}
