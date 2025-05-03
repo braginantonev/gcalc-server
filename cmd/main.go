@@ -7,10 +7,8 @@ import (
 	"google.golang.org/grpc"
 )
 
-//Todo: Пофиксить отображение статусов при вызове списка выражений
-//Todo: Заменить все вызовы полей gRPC на гетеры
-//Todo: Все &wrapperspb.StringValue{} заменить на сеттеры - wrapperspb.String()
 //Todo: Почистить код
+//Todo: Добавить Task уникальный id, без привязки к Expression id
 
 func main() {
 	grpcServer := grpc.NewServer()
