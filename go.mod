@@ -3,7 +3,7 @@ module github.com/braginantonev/gcalc-server
 go 1.23.4
 
 require (
-	github.com/Antibrag/gcalc-server v0.0.0-20250305113852-1b1210c890b7
+	github.com/braginantonev/gcalc-server v0.0.0-20250305113852-1b1210c890b7
 	google.golang.org/grpc v1.72.0
 	google.golang.org/protobuf v1.36.6
 )
