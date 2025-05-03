@@ -139,7 +139,7 @@ type RequestTask struct {
 }
 
 type ResponseExpression struct {
-	Id     string           `json:"id"`
-	Status orch_pb.ETStatus `json:"status,omitempty"`
-	Result float64          `json:"result,omitempty"`
+	Id     string  `json:"id"`
+	Status string  `json:"status,omitempty"`
+	Result float64 `json:"result,omitempty"`
 }
