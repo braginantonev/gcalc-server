@@ -56,7 +56,7 @@ func TestSolve(t *testing.T) {
 
 	for _, test := range cases {
 		t.Run(test.name, func(t *testing.T) {
-			err := agent.Solve(test.task)
+			err := agent.Solve(0, test.task)
 			if test.task.Answer != test.expected || !errors.Is(err, test.expected_err) {
 				t.Errorf("SolveExample(%#v) = (%f, %q), but expected: (%f, %q)", test.task, test.task.Answer, err, test.expected, test.expected_err)
 			}

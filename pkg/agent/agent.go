@@ -3,7 +3,6 @@ package agent
 import (
 	"context"
 	"fmt"
-	"log"
 	"log/slog"
 	"slices"
 	"sync"
@@ -29,6 +28,12 @@ var (
 	tasks           []string
 	orchClient      pb.OrchestratorServiceClient
 	COMPUTING_POWER int
+	TIMES_MS        = map[string]int{
+		"+": TIME_ADDITION_MS,
+		"-": TIME_SUBTRACTION_MS,
+		"*": TIME_MULTIPLICATION_MS,
+		"/": TIME_DIVISIONS_MS,
+	}
 )
 
 // Return true, if task has been appended, else - false
@@ -47,8 +52,8 @@ func Enable(ctx context.Context, orch_client pb.OrchestratorServiceClient, comp_
 	orchClient = orch_client
 	COMPUTING_POWER = comp_power
 
-	for range COMPUTING_POWER {
-		go func(ctx context.Context) {
+	for i := range COMPUTING_POWER {
+		go func(id int, ctx context.Context) {
 			for {
 				select {
 				case <-ctx.Done():
@@ -79,14 +84,14 @@ func Enable(ctx context.Context, orch_client pb.OrchestratorServiceClient, comp_
 					}
 					mux.Unlock()
 
-					if got_err = Solve(task); got_err != nil {
+					if got_err = Solve(i, task); got_err != nil {
 						SendRequest(task, got_err)
 					}
 
 					SendRequest(task, nil)
 				}
 			}
-		}(ctx)
+		}(i, ctx)
 	}
 }
 
@@ -95,9 +100,11 @@ func SendRequest(task *pb.Task, err error) {
 	if err != nil {
 		task_res.Id = task.GetId()
 		task_res.Error = err.Error()
+		//log.Printf("DEBUG: save task %s result with error %s", task_res.Id, task_res.Error)
 	} else {
 		task_res.Id = task.GetId()
 		task_res.Result = task.GetAnswer()
+		//log.Printf("DEBUG: save task %s result - %f", task_res.Id, task_res.Result)
 	}
 
 	_, err = orchClient.SaveTaskResult(context.TODO(), task_res)
@@ -106,29 +113,29 @@ func SendRequest(task *pb.Task, err error) {
 	}
 }
 
-func Solve(task *pb.Task) error {
-	log.Println("AGENT DEBUG: solve -", task.Str)
-	if task.SecondArgument.Value == 0 && task.Operation == orchestrator.Division.ToString() {
+func Solve(agent_id int, task *pb.Task) error {
+	//log.Printf("[Agent %d] DEBUG: solve - %s (%s)", agent_id, task.GetId(), task.GetStr())
+	if task.GetSecondArgument().Value == 0 && task.GetOperation() == orchestrator.Division.ToString() {
 		return ErrDivideByZero
 	}
 
-	<-time.After(time.Second * time.Duration(task.OperationTimeSeconds))
+	<-time.After(time.Duration(TIMES_MS[(task.GetOperation())]) * time.Millisecond)
 
-	switch task.Operation {
+	switch task.GetOperation() {
 	case orchestrator.Plus.ToString():
-		task.Answer = task.FirstArgument.Value + task.SecondArgument.Value
+		task.Answer = task.GetFirstArgument().Value + task.GetSecondArgument().Value
 		return nil
 
 	case orchestrator.Minus.ToString():
-		task.Answer = task.FirstArgument.Value - task.SecondArgument.Value
+		task.Answer = task.GetFirstArgument().Value - task.GetSecondArgument().Value
 		return nil
 
 	case orchestrator.Multiply.ToString():
-		task.Answer = task.FirstArgument.Value * task.SecondArgument.Value
+		task.Answer = task.GetFirstArgument().Value * task.GetSecondArgument().Value
 		return nil
 
 	case orchestrator.Division.ToString():
-		task.Answer = task.FirstArgument.Value / task.SecondArgument.Value
+		task.Answer = task.GetFirstArgument().Value / task.GetSecondArgument().Value
 		return nil
 	}
 	return orchestrator.ErrExpressionIncorrect
