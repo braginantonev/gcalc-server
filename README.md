@@ -4,7 +4,7 @@ A web service that accepts a complex expression in the form of JSON and returns 
 ## Installation
 1. Install [Go](https://go.dev/doc/install)
 2. Install [Git](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git)
-3. Clone repository: ```git clone https://github.com/Antibrag/gcalc-server```
+3. Clone repository: ```git clone https://github.com/braginantonev/gcalc-server```
 
 ## Usage
 1. Go to installed repository
