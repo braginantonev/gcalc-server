@@ -1,6 +1,7 @@
 package orchestrator
 
 import (
+	"fmt"
 	"strconv"
 	"strings"
 
@@ -85,7 +86,12 @@ func GetTask(example string) (*pb.Task, int, error) {
 
 	convertArgument := func(arg *pb.Argument, str string) (err error) {
 		if strings.Contains(str, "id:") {
-			arg.Expected = str[3:]
+			var parse_result int64
+			parse_result, err = strconv.ParseInt(str[3:], 10, 32)
+			if err != nil {
+				return
+			}
+			arg.Expected = int32(parse_result)
 			task.Status = pb.ETStatus_IsWaitingValues
 		} else {
 			arg.Value, err = strconv.ParseFloat(str, 64)
@@ -131,6 +137,6 @@ func GetTask(example string) (*pb.Task, int, error) {
 }
 
 // Заменяет выражение на его ответ
-func EraseExample(example, erase_ex string, pri_idx int, id string) string {
-	return example[:pri_idx] + strings.Replace(example[pri_idx:], erase_ex, "id:"+id, 1)
+func EraseExample(example, erase_ex string, pri_idx int, id int32) string {
+	return example[:pri_idx] + strings.Replace(example[pri_idx:], erase_ex, "id:"+fmt.Sprint(id), 1)
 }
