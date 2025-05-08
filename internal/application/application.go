@@ -139,7 +139,7 @@ type RequestTask struct {
 }
 
 type ResponseExpression struct {
-	Id     string  `json:"id"`
+	Id     int32   `json:"id"`
 	Status string  `json:"status,omitempty"`
 	Result float64 `json:"result,omitempty"`
 }

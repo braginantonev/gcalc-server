@@ -3,10 +3,12 @@ package application
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"io"
 	"log/slog"
 	"net/http"
 	"slices"
+	"strconv"
 	"strings"
 
 	"google.golang.org/protobuf/types/known/emptypb"
@@ -54,7 +56,7 @@ func AddExpressionHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	id, err := OrchestratorServiceClient.AddExpression(context.TODO(), wrapperspb.String(req.Expression))
-	slog.Info("add expression to queue. ", slog.String("id", id.GetValue()))
+	slog.Info("add expression to queue. ", slog.String("id", fmt.Sprint(id.GetValue())))
 
 	if err != nil {
 		slog.Error("Failed add expression. ", slog.String("error", err.Error()))
@@ -117,13 +119,18 @@ func GetExpressionsQueueHandler(w http.ResponseWriter, r *http.Request) {
 
 func GetExpressionHandler(w http.ResponseWriter, r *http.Request) {
 	paths := strings.Split(r.URL.Path, "/")
-	id := paths[len(paths)-1]
-
-	slog.Info("request - get expression.", slog.String("id", id))
-
-	exp, err := OrchestratorServiceClient.GetExpression(context.TODO(), wrapperspb.String(id))
+	id, err := strconv.ParseInt(paths[len(paths)-1], 10, 32)
 	if err != nil {
-		slog.Error("expression not found", slog.String("id", id), slog.String("err", err.Error()))
+		slog.Error(err.Error())
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	slog.Info("request - get expression.", slog.String("id", fmt.Sprint(id)))
+
+	exp, err := OrchestratorServiceClient.GetExpression(context.TODO(), wrapperspb.Int32(int32(id)))
+	if err != nil {
+		slog.Error("expression not found", slog.String("id", fmt.Sprint(id)), slog.String("err", err.Error()))
 		w.WriteHeader(http.StatusNotFound)
 		return
 	}

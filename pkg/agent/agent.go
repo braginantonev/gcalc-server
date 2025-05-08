@@ -11,7 +11,6 @@ import (
 	"github.com/braginantonev/gcalc-server/pkg/orchestrator"
 	pb "github.com/braginantonev/gcalc-server/proto/orchestrator"
 	"google.golang.org/grpc/status"
-	"google.golang.org/protobuf/types/known/wrapperspb"
 )
 
 //! Оставить как минимум один поток для выполнения анализа
@@ -24,8 +23,13 @@ const (
 	TIME_DIVISIONS_MS      = 4000
 )
 
+type LocalTaskID struct {
+	Expression int32
+	Internal   int32
+}
+
 var (
-	tasks           []string
+	tasks           []LocalTaskID
 	orchClient      pb.OrchestratorServiceClient
 	COMPUTING_POWER int
 	TIMES_MS        = map[string]int{
@@ -37,12 +41,12 @@ var (
 )
 
 // Return true, if task has been appended, else - false
-func appendTask(task_id string) bool {
-	if slices.Contains(tasks, task_id) {
+func appendTask(taskID LocalTaskID) bool {
+	if slices.Contains(tasks, taskID) {
 		return false
 	}
 
-	tasks = append(tasks, task_id)
+	tasks = append(tasks, taskID)
 	return true
 }
 
@@ -61,7 +65,7 @@ func Enable(ctx context.Context, orch_client pb.OrchestratorServiceClient, comp_
 
 				default:
 					var err_message string
-					task, got_err := orchClient.GetTask(ctx, wrapperspb.String(""))
+					task, got_err := orchClient.GetTask(ctx, pb.NewTaskID())
 					if st, ok := status.FromError(got_err); ok {
 						err_message = st.Message()
 					}
@@ -78,7 +82,7 @@ func Enable(ctx context.Context, orch_client pb.OrchestratorServiceClient, comp_
 					}
 
 					mux.Lock()
-					if !appendTask(task.Id) {
+					if !appendTask(LocalTaskID{Expression: task.ExpressionId, Internal: task.Id}) {
 						mux.Unlock()
 						continue
 					}
@@ -96,15 +100,12 @@ func Enable(ctx context.Context, orch_client pb.OrchestratorServiceClient, comp_
 }
 
 func SendRequest(task *pb.Task, err error) {
-	task_res := &pb.TaskResult{}
+	task_res := pb.NewTaskResult()
+	task_res.TaskID = pb.NewTaskIDWithValues(task.ExpressionId, task.Id)
 	if err != nil {
-		task_res.Id = task.GetId()
 		task_res.Error = err.Error()
-		//log.Printf("DEBUG: save task %s result with error %s", task_res.Id, task_res.Error)
 	} else {
-		task_res.Id = task.GetId()
 		task_res.Result = task.GetAnswer()
-		//log.Printf("DEBUG: save task %s result - %f", task_res.Id, task_res.Result)
 	}
 
 	_, err = orchClient.SaveTaskResult(context.TODO(), task_res)
