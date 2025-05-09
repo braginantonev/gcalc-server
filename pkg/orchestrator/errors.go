@@ -13,4 +13,7 @@ var (
 	ErrTaskNotFound        error = errors.New("task not found")
 	ErrExpectation         error = errors.New("expectation error")
 	ErrExpressionIncorrect error = errors.New("expression incorrect")
+
+	ErrDBPathIsEmpty         error = errors.New("database path is empty")
+	ErrUnexpectedRequestType error = errors.New("unexpected database request type")
 )
