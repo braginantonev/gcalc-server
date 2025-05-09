@@ -131,6 +131,7 @@ func (x *Argument) GetExpected() int32 {
 	return 0
 }
 
+// Todo: Добавить вместо id, expression_id - TaskID
 type Task struct {
 	state          protoimpl.MessageState `protogen:"open.v1"`
 	Id             int32                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
@@ -345,11 +346,12 @@ func (x *TaskResult) GetError() string {
 
 type Expression struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            int32                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
-	Status        ETStatus               `protobuf:"varint,2,opt,name=status,proto3,enum=orchestrator.ETStatus" json:"status,omitempty"`
-	Str           string                 `protobuf:"bytes,3,opt,name=str,proto3" json:"str,omitempty"`
-	TasksQueue    []*Task                `protobuf:"bytes,4,rep,name=tasks_queue,json=tasksQueue,proto3" json:"tasks_queue,omitempty"`
-	Result        float64                `protobuf:"fixed64,5,opt,name=result,proto3" json:"result,omitempty"`
+	User          string                 `protobuf:"bytes,1,opt,name=user,proto3" json:"user,omitempty"`
+	Id            int32                  `protobuf:"varint,2,opt,name=id,proto3" json:"id,omitempty"`
+	Status        ETStatus               `protobuf:"varint,3,opt,name=status,proto3,enum=orchestrator.ETStatus" json:"status,omitempty"`
+	Str           string                 `protobuf:"bytes,4,opt,name=str,proto3" json:"str,omitempty"`
+	TasksQueue    []*Task                `protobuf:"bytes,5,rep,name=tasks_queue,json=tasksQueue,proto3" json:"tasks_queue,omitempty"`
+	Result        float64                `protobuf:"fixed64,6,opt,name=result,proto3" json:"result,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -382,6 +384,13 @@ func (x *Expression) ProtoReflect() protoreflect.Message {
 // Deprecated: Use Expression.ProtoReflect.Descriptor instead.
 func (*Expression) Descriptor() ([]byte, []int) {
 	return file_proto_orchestrator_orchestrator_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *Expression) GetUser() string {
+	if x != nil {
+		return x.User
+	}
+	return ""
 }
 
 func (x *Expression) GetId() int32 {
@@ -489,15 +498,16 @@ const file_proto_orchestrator_orchestrator_proto_rawDesc = "" +
 	"TaskResult\x12,\n" +
 	"\x06taskID\x18\x01 \x01(\v2\x14.orchestrator.TaskIDR\x06taskID\x12\x16\n" +
 	"\x06result\x18\x02 \x01(\x01R\x06result\x12\x14\n" +
-	"\x05error\x18\x03 \x01(\tR\x05error\"\xab\x01\n" +
+	"\x05error\x18\x03 \x01(\tR\x05error\"\xbf\x01\n" +
 	"\n" +
-	"Expression\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\x05R\x02id\x12.\n" +
-	"\x06status\x18\x02 \x01(\x0e2\x16.orchestrator.ETStatusR\x06status\x12\x10\n" +
-	"\x03str\x18\x03 \x01(\tR\x03str\x123\n" +
-	"\vtasks_queue\x18\x04 \x03(\v2\x12.orchestrator.TaskR\n" +
+	"Expression\x12\x12\n" +
+	"\x04user\x18\x01 \x01(\tR\x04user\x12\x0e\n" +
+	"\x02id\x18\x02 \x01(\x05R\x02id\x12.\n" +
+	"\x06status\x18\x03 \x01(\x0e2\x16.orchestrator.ETStatusR\x06status\x12\x10\n" +
+	"\x03str\x18\x04 \x01(\tR\x03str\x123\n" +
+	"\vtasks_queue\x18\x05 \x03(\v2\x12.orchestrator.TaskR\n" +
 	"tasksQueue\x12\x16\n" +
-	"\x06result\x18\x05 \x01(\x01R\x06result\"=\n" +
+	"\x06result\x18\x06 \x01(\x01R\x06result\"=\n" +
 	"\vExpressions\x12.\n" +
 	"\x05queue\x18\x01 \x03(\v2\x18.orchestrator.ExpressionR\x05queue*W\n" +
 	"\bETStatus\x12\v\n" +

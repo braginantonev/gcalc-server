@@ -19,6 +19,7 @@ message Argument {
     int32 expected = 2;
 }
 
+//Todo: Добавить вместо id, expression_id - TaskID
 message Task {
     int32 id = 1;
     int32 expression_id = 2;
@@ -42,11 +43,12 @@ message TaskResult {
 }
 
 message Expression {
-    int32 id = 1;
-    ETStatus status = 2;
-    string str = 3;
-    repeated Task tasks_queue = 4;
-    double result = 5;
+    string user = 1;
+    int32 id = 2;
+    ETStatus status = 3;
+    string str = 4;
+    repeated Task tasks_queue = 5;
+    double result = 6;
 }
 
 message Expressions {
