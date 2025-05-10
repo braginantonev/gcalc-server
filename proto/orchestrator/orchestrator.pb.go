@@ -131,24 +131,74 @@ func (x *Argument) GetExpected() int32 {
 	return 0
 }
 
-// Todo: Добавить вместо id, expression_id - TaskID
+type TaskID struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Expression    int32                  `protobuf:"varint,1,opt,name=expression,proto3" json:"expression,omitempty"`
+	Internal      int32                  `protobuf:"varint,2,opt,name=internal,proto3" json:"internal,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *TaskID) Reset() {
+	*x = TaskID{}
+	mi := &file_proto_orchestrator_orchestrator_proto_msgTypes[1]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *TaskID) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*TaskID) ProtoMessage() {}
+
+func (x *TaskID) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_orchestrator_orchestrator_proto_msgTypes[1]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use TaskID.ProtoReflect.Descriptor instead.
+func (*TaskID) Descriptor() ([]byte, []int) {
+	return file_proto_orchestrator_orchestrator_proto_rawDescGZIP(), []int{1}
+}
+
+func (x *TaskID) GetExpression() int32 {
+	if x != nil {
+		return x.Expression
+	}
+	return 0
+}
+
+func (x *TaskID) GetInternal() int32 {
+	if x != nil {
+		return x.Internal
+	}
+	return 0
+}
+
 type Task struct {
 	state          protoimpl.MessageState `protogen:"open.v1"`
-	Id             int32                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
-	ExpressionId   int32                  `protobuf:"varint,2,opt,name=expression_id,json=expressionId,proto3" json:"expression_id,omitempty"`
-	FirstArgument  *Argument              `protobuf:"bytes,3,opt,name=first_argument,json=firstArgument,proto3" json:"first_argument,omitempty"`
-	SecondArgument *Argument              `protobuf:"bytes,4,opt,name=second_argument,json=secondArgument,proto3" json:"second_argument,omitempty"`
-	Operation      string                 `protobuf:"bytes,5,opt,name=operation,proto3" json:"operation,omitempty"`
-	Status         ETStatus               `protobuf:"varint,6,opt,name=status,proto3,enum=orchestrator.ETStatus" json:"status,omitempty"`
-	Str            string                 `protobuf:"bytes,7,opt,name=str,proto3" json:"str,omitempty"`
-	Answer         float64                `protobuf:"fixed64,8,opt,name=answer,proto3" json:"answer,omitempty"`
+	Id             *TaskID                `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	FirstArgument  *Argument              `protobuf:"bytes,2,opt,name=first_argument,json=firstArgument,proto3" json:"first_argument,omitempty"`
+	SecondArgument *Argument              `protobuf:"bytes,3,opt,name=second_argument,json=secondArgument,proto3" json:"second_argument,omitempty"`
+	Operation      string                 `protobuf:"bytes,4,opt,name=operation,proto3" json:"operation,omitempty"`
+	Status         ETStatus               `protobuf:"varint,5,opt,name=status,proto3,enum=orchestrator.ETStatus" json:"status,omitempty"`
+	Str            string                 `protobuf:"bytes,6,opt,name=str,proto3" json:"str,omitempty"`
+	Answer         float64                `protobuf:"fixed64,7,opt,name=answer,proto3" json:"answer,omitempty"`
 	unknownFields  protoimpl.UnknownFields
 	sizeCache      protoimpl.SizeCache
 }
 
 func (x *Task) Reset() {
 	*x = Task{}
-	mi := &file_proto_orchestrator_orchestrator_proto_msgTypes[1]
+	mi := &file_proto_orchestrator_orchestrator_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -160,7 +210,7 @@ func (x *Task) String() string {
 func (*Task) ProtoMessage() {}
 
 func (x *Task) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_orchestrator_orchestrator_proto_msgTypes[1]
+	mi := &file_proto_orchestrator_orchestrator_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -173,21 +223,14 @@ func (x *Task) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Task.ProtoReflect.Descriptor instead.
 func (*Task) Descriptor() ([]byte, []int) {
-	return file_proto_orchestrator_orchestrator_proto_rawDescGZIP(), []int{1}
+	return file_proto_orchestrator_orchestrator_proto_rawDescGZIP(), []int{2}
 }
 
-func (x *Task) GetId() int32 {
+func (x *Task) GetId() *TaskID {
 	if x != nil {
 		return x.Id
 	}
-	return 0
-}
-
-func (x *Task) GetExpressionId() int32 {
-	if x != nil {
-		return x.ExpressionId
-	}
-	return 0
+	return nil
 }
 
 func (x *Task) GetFirstArgument() *Argument {
@@ -228,58 +271,6 @@ func (x *Task) GetStr() string {
 func (x *Task) GetAnswer() float64 {
 	if x != nil {
 		return x.Answer
-	}
-	return 0
-}
-
-type TaskID struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Expression    int32                  `protobuf:"varint,1,opt,name=expression,proto3" json:"expression,omitempty"`
-	Internal      int32                  `protobuf:"varint,2,opt,name=internal,proto3" json:"internal,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *TaskID) Reset() {
-	*x = TaskID{}
-	mi := &file_proto_orchestrator_orchestrator_proto_msgTypes[2]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *TaskID) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*TaskID) ProtoMessage() {}
-
-func (x *TaskID) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_orchestrator_orchestrator_proto_msgTypes[2]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use TaskID.ProtoReflect.Descriptor instead.
-func (*TaskID) Descriptor() ([]byte, []int) {
-	return file_proto_orchestrator_orchestrator_proto_rawDescGZIP(), []int{2}
-}
-
-func (x *TaskID) GetExpression() int32 {
-	if x != nil {
-		return x.Expression
-	}
-	return 0
-}
-
-func (x *TaskID) GetInternal() int32 {
-	if x != nil {
-		return x.Internal
 	}
 	return 0
 }
@@ -344,21 +335,72 @@ func (x *TaskResult) GetError() string {
 	return ""
 }
 
-type Expression struct {
+type ExpressionID struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	User          string                 `protobuf:"bytes,1,opt,name=user,proto3" json:"user,omitempty"`
-	Id            int32                  `protobuf:"varint,2,opt,name=id,proto3" json:"id,omitempty"`
-	Status        ETStatus               `protobuf:"varint,3,opt,name=status,proto3,enum=orchestrator.ETStatus" json:"status,omitempty"`
-	Str           string                 `protobuf:"bytes,4,opt,name=str,proto3" json:"str,omitempty"`
-	TasksQueue    []*Task                `protobuf:"bytes,5,rep,name=tasks_queue,json=tasksQueue,proto3" json:"tasks_queue,omitempty"`
-	Result        float64                `protobuf:"fixed64,6,opt,name=result,proto3" json:"result,omitempty"`
+	Internal      int32                  `protobuf:"varint,2,opt,name=internal,proto3" json:"internal,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ExpressionID) Reset() {
+	*x = ExpressionID{}
+	mi := &file_proto_orchestrator_orchestrator_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ExpressionID) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ExpressionID) ProtoMessage() {}
+
+func (x *ExpressionID) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_orchestrator_orchestrator_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ExpressionID.ProtoReflect.Descriptor instead.
+func (*ExpressionID) Descriptor() ([]byte, []int) {
+	return file_proto_orchestrator_orchestrator_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *ExpressionID) GetUser() string {
+	if x != nil {
+		return x.User
+	}
+	return ""
+}
+
+func (x *ExpressionID) GetInternal() int32 {
+	if x != nil {
+		return x.Internal
+	}
+	return 0
+}
+
+type Expression struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            *ExpressionID          `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Status        ETStatus               `protobuf:"varint,2,opt,name=status,proto3,enum=orchestrator.ETStatus" json:"status,omitempty"`
+	Str           string                 `protobuf:"bytes,3,opt,name=str,proto3" json:"str,omitempty"`
+	TasksQueue    []*Task                `protobuf:"bytes,4,rep,name=tasks_queue,json=tasksQueue,proto3" json:"tasks_queue,omitempty"`
+	Result        float64                `protobuf:"fixed64,5,opt,name=result,proto3" json:"result,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *Expression) Reset() {
 	*x = Expression{}
-	mi := &file_proto_orchestrator_orchestrator_proto_msgTypes[4]
+	mi := &file_proto_orchestrator_orchestrator_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -370,7 +412,7 @@ func (x *Expression) String() string {
 func (*Expression) ProtoMessage() {}
 
 func (x *Expression) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_orchestrator_orchestrator_proto_msgTypes[4]
+	mi := &file_proto_orchestrator_orchestrator_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -383,21 +425,14 @@ func (x *Expression) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Expression.ProtoReflect.Descriptor instead.
 func (*Expression) Descriptor() ([]byte, []int) {
-	return file_proto_orchestrator_orchestrator_proto_rawDescGZIP(), []int{4}
+	return file_proto_orchestrator_orchestrator_proto_rawDescGZIP(), []int{5}
 }
 
-func (x *Expression) GetUser() string {
-	if x != nil {
-		return x.User
-	}
-	return ""
-}
-
-func (x *Expression) GetId() int32 {
+func (x *Expression) GetId() *ExpressionID {
 	if x != nil {
 		return x.Id
 	}
-	return 0
+	return nil
 }
 
 func (x *Expression) GetStatus() ETStatus {
@@ -428,6 +463,58 @@ func (x *Expression) GetResult() float64 {
 	return 0
 }
 
+type AddedExpression struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	User          string                 `protobuf:"bytes,1,opt,name=user,proto3" json:"user,omitempty"`
+	Str           string                 `protobuf:"bytes,2,opt,name=str,proto3" json:"str,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AddedExpression) Reset() {
+	*x = AddedExpression{}
+	mi := &file_proto_orchestrator_orchestrator_proto_msgTypes[6]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AddedExpression) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AddedExpression) ProtoMessage() {}
+
+func (x *AddedExpression) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_orchestrator_orchestrator_proto_msgTypes[6]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AddedExpression.ProtoReflect.Descriptor instead.
+func (*AddedExpression) Descriptor() ([]byte, []int) {
+	return file_proto_orchestrator_orchestrator_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *AddedExpression) GetUser() string {
+	if x != nil {
+		return x.User
+	}
+	return ""
+}
+
+func (x *AddedExpression) GetStr() string {
+	if x != nil {
+		return x.Str
+	}
+	return ""
+}
+
 type Expressions struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Queue         []*Expression          `protobuf:"bytes,1,rep,name=queue,proto3" json:"queue,omitempty"`
@@ -437,7 +524,7 @@ type Expressions struct {
 
 func (x *Expressions) Reset() {
 	*x = Expressions{}
-	mi := &file_proto_orchestrator_orchestrator_proto_msgTypes[5]
+	mi := &file_proto_orchestrator_orchestrator_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -449,7 +536,7 @@ func (x *Expressions) String() string {
 func (*Expressions) ProtoMessage() {}
 
 func (x *Expressions) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_orchestrator_orchestrator_proto_msgTypes[5]
+	mi := &file_proto_orchestrator_orchestrator_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -462,7 +549,7 @@ func (x *Expressions) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Expressions.ProtoReflect.Descriptor instead.
 func (*Expressions) Descriptor() ([]byte, []int) {
-	return file_proto_orchestrator_orchestrator_proto_rawDescGZIP(), []int{5}
+	return file_proto_orchestrator_orchestrator_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *Expressions) GetQueue() []*Expression {
@@ -479,35 +566,39 @@ const file_proto_orchestrator_orchestrator_proto_rawDesc = "" +
 	"%proto/orchestrator/orchestrator.proto\x12\forchestrator\x1a\x1bgoogle/protobuf/empty.proto\x1a\x1egoogle/protobuf/wrappers.proto\"<\n" +
 	"\bArgument\x12\x14\n" +
 	"\x05value\x18\x01 \x01(\x01R\x05value\x12\x1a\n" +
-	"\bexpected\x18\x02 \x01(\x05R\bexpected\"\xb3\x02\n" +
-	"\x04Task\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\x05R\x02id\x12#\n" +
-	"\rexpression_id\x18\x02 \x01(\x05R\fexpressionId\x12=\n" +
-	"\x0efirst_argument\x18\x03 \x01(\v2\x16.orchestrator.ArgumentR\rfirstArgument\x12?\n" +
-	"\x0fsecond_argument\x18\x04 \x01(\v2\x16.orchestrator.ArgumentR\x0esecondArgument\x12\x1c\n" +
-	"\toperation\x18\x05 \x01(\tR\toperation\x12.\n" +
-	"\x06status\x18\x06 \x01(\x0e2\x16.orchestrator.ETStatusR\x06status\x12\x10\n" +
-	"\x03str\x18\a \x01(\tR\x03str\x12\x16\n" +
-	"\x06answer\x18\b \x01(\x01R\x06answer\"D\n" +
+	"\bexpected\x18\x02 \x01(\x05R\bexpected\"D\n" +
 	"\x06TaskID\x12\x1e\n" +
 	"\n" +
 	"expression\x18\x01 \x01(\x05R\n" +
 	"expression\x12\x1a\n" +
-	"\binternal\x18\x02 \x01(\x05R\binternal\"h\n" +
+	"\binternal\x18\x02 \x01(\x05R\binternal\"\xa4\x02\n" +
+	"\x04Task\x12$\n" +
+	"\x02id\x18\x01 \x01(\v2\x14.orchestrator.TaskIDR\x02id\x12=\n" +
+	"\x0efirst_argument\x18\x02 \x01(\v2\x16.orchestrator.ArgumentR\rfirstArgument\x12?\n" +
+	"\x0fsecond_argument\x18\x03 \x01(\v2\x16.orchestrator.ArgumentR\x0esecondArgument\x12\x1c\n" +
+	"\toperation\x18\x04 \x01(\tR\toperation\x12.\n" +
+	"\x06status\x18\x05 \x01(\x0e2\x16.orchestrator.ETStatusR\x06status\x12\x10\n" +
+	"\x03str\x18\x06 \x01(\tR\x03str\x12\x16\n" +
+	"\x06answer\x18\a \x01(\x01R\x06answer\"h\n" +
 	"\n" +
 	"TaskResult\x12,\n" +
 	"\x06taskID\x18\x01 \x01(\v2\x14.orchestrator.TaskIDR\x06taskID\x12\x16\n" +
 	"\x06result\x18\x02 \x01(\x01R\x06result\x12\x14\n" +
-	"\x05error\x18\x03 \x01(\tR\x05error\"\xbf\x01\n" +
+	"\x05error\x18\x03 \x01(\tR\x05error\">\n" +
+	"\fExpressionID\x12\x12\n" +
+	"\x04user\x18\x01 \x01(\tR\x04user\x12\x1a\n" +
+	"\binternal\x18\x02 \x01(\x05R\binternal\"\xc7\x01\n" +
 	"\n" +
-	"Expression\x12\x12\n" +
-	"\x04user\x18\x01 \x01(\tR\x04user\x12\x0e\n" +
-	"\x02id\x18\x02 \x01(\x05R\x02id\x12.\n" +
-	"\x06status\x18\x03 \x01(\x0e2\x16.orchestrator.ETStatusR\x06status\x12\x10\n" +
-	"\x03str\x18\x04 \x01(\tR\x03str\x123\n" +
-	"\vtasks_queue\x18\x05 \x03(\v2\x12.orchestrator.TaskR\n" +
+	"Expression\x12*\n" +
+	"\x02id\x18\x01 \x01(\v2\x1a.orchestrator.ExpressionIDR\x02id\x12.\n" +
+	"\x06status\x18\x02 \x01(\x0e2\x16.orchestrator.ETStatusR\x06status\x12\x10\n" +
+	"\x03str\x18\x03 \x01(\tR\x03str\x123\n" +
+	"\vtasks_queue\x18\x04 \x03(\v2\x12.orchestrator.TaskR\n" +
 	"tasksQueue\x12\x16\n" +
-	"\x06result\x18\x06 \x01(\x01R\x06result\"=\n" +
+	"\x06result\x18\x05 \x01(\x01R\x06result\"7\n" +
+	"\x0fAddedExpression\x12\x12\n" +
+	"\x04user\x18\x01 \x01(\tR\x04user\x12\x10\n" +
+	"\x03str\x18\x02 \x01(\tR\x03str\"=\n" +
 	"\vExpressions\x12.\n" +
 	"\x05queue\x18\x01 \x03(\v2\x18.orchestrator.ExpressionR\x05queue*W\n" +
 	"\bETStatus\x12\v\n" +
@@ -516,13 +607,13 @@ const file_proto_orchestrator_orchestrator_proto_rawDesc = "" +
 	"\x0fIsWaitingValues\x10\x02\x12\x0e\n" +
 	"\n" +
 	"InProgress\x10\x03\x12\f\n" +
-	"\bComplete\x10\x042\xe7\x02\n" +
+	"\bComplete\x10\x042\xed\x02\n" +
 	"\x13OrchestratorService\x123\n" +
 	"\aGetTask\x12\x14.orchestrator.TaskID\x1a\x12.orchestrator.Task\x12B\n" +
-	"\x0eSaveTaskResult\x12\x18.orchestrator.TaskResult\x1a\x16.google.protobuf.Empty\x12J\n" +
-	"\rAddExpression\x12\x1c.google.protobuf.StringValue\x1a\x1b.google.protobuf.Int32Value\x12C\n" +
-	"\x0eGetExpressions\x12\x16.google.protobuf.Empty\x1a\x19.orchestrator.Expressions\x12F\n" +
-	"\rGetExpression\x12\x1b.google.protobuf.Int32Value\x1a\x18.orchestrator.ExpressionB:Z8github.com/braginantonev/gcalc-server/proto/orchestratorb\x06proto3"
+	"\x0eSaveTaskResult\x12\x18.orchestrator.TaskResult\x1a\x16.google.protobuf.Empty\x12K\n" +
+	"\rAddExpression\x12\x1d.orchestrator.AddedExpression\x1a\x1b.google.protobuf.Int32Value\x12I\n" +
+	"\x0eGetExpressions\x12\x1c.google.protobuf.StringValue\x1a\x19.orchestrator.Expressions\x12E\n" +
+	"\rGetExpression\x12\x1a.orchestrator.ExpressionID\x1a\x18.orchestrator.ExpressionB:Z8github.com/braginantonev/gcalc-server/proto/orchestratorb\x06proto3"
 
 var (
 	file_proto_orchestrator_orchestrator_proto_rawDescOnce sync.Once
@@ -537,42 +628,46 @@ func file_proto_orchestrator_orchestrator_proto_rawDescGZIP() []byte {
 }
 
 var file_proto_orchestrator_orchestrator_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_proto_orchestrator_orchestrator_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
+var file_proto_orchestrator_orchestrator_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
 var file_proto_orchestrator_orchestrator_proto_goTypes = []any{
 	(ETStatus)(0),                  // 0: orchestrator.ETStatus
 	(*Argument)(nil),               // 1: orchestrator.Argument
-	(*Task)(nil),                   // 2: orchestrator.Task
-	(*TaskID)(nil),                 // 3: orchestrator.TaskID
+	(*TaskID)(nil),                 // 2: orchestrator.TaskID
+	(*Task)(nil),                   // 3: orchestrator.Task
 	(*TaskResult)(nil),             // 4: orchestrator.TaskResult
-	(*Expression)(nil),             // 5: orchestrator.Expression
-	(*Expressions)(nil),            // 6: orchestrator.Expressions
-	(*wrapperspb.StringValue)(nil), // 7: google.protobuf.StringValue
-	(*emptypb.Empty)(nil),          // 8: google.protobuf.Empty
-	(*wrapperspb.Int32Value)(nil),  // 9: google.protobuf.Int32Value
+	(*ExpressionID)(nil),           // 5: orchestrator.ExpressionID
+	(*Expression)(nil),             // 6: orchestrator.Expression
+	(*AddedExpression)(nil),        // 7: orchestrator.AddedExpression
+	(*Expressions)(nil),            // 8: orchestrator.Expressions
+	(*wrapperspb.StringValue)(nil), // 9: google.protobuf.StringValue
+	(*emptypb.Empty)(nil),          // 10: google.protobuf.Empty
+	(*wrapperspb.Int32Value)(nil),  // 11: google.protobuf.Int32Value
 }
 var file_proto_orchestrator_orchestrator_proto_depIdxs = []int32{
-	1,  // 0: orchestrator.Task.first_argument:type_name -> orchestrator.Argument
-	1,  // 1: orchestrator.Task.second_argument:type_name -> orchestrator.Argument
-	0,  // 2: orchestrator.Task.status:type_name -> orchestrator.ETStatus
-	3,  // 3: orchestrator.TaskResult.taskID:type_name -> orchestrator.TaskID
-	0,  // 4: orchestrator.Expression.status:type_name -> orchestrator.ETStatus
-	2,  // 5: orchestrator.Expression.tasks_queue:type_name -> orchestrator.Task
-	5,  // 6: orchestrator.Expressions.queue:type_name -> orchestrator.Expression
-	3,  // 7: orchestrator.OrchestratorService.GetTask:input_type -> orchestrator.TaskID
-	4,  // 8: orchestrator.OrchestratorService.SaveTaskResult:input_type -> orchestrator.TaskResult
-	7,  // 9: orchestrator.OrchestratorService.AddExpression:input_type -> google.protobuf.StringValue
-	8,  // 10: orchestrator.OrchestratorService.GetExpressions:input_type -> google.protobuf.Empty
-	9,  // 11: orchestrator.OrchestratorService.GetExpression:input_type -> google.protobuf.Int32Value
-	2,  // 12: orchestrator.OrchestratorService.GetTask:output_type -> orchestrator.Task
-	8,  // 13: orchestrator.OrchestratorService.SaveTaskResult:output_type -> google.protobuf.Empty
-	9,  // 14: orchestrator.OrchestratorService.AddExpression:output_type -> google.protobuf.Int32Value
-	6,  // 15: orchestrator.OrchestratorService.GetExpressions:output_type -> orchestrator.Expressions
-	5,  // 16: orchestrator.OrchestratorService.GetExpression:output_type -> orchestrator.Expression
-	12, // [12:17] is the sub-list for method output_type
-	7,  // [7:12] is the sub-list for method input_type
-	7,  // [7:7] is the sub-list for extension type_name
-	7,  // [7:7] is the sub-list for extension extendee
-	0,  // [0:7] is the sub-list for field type_name
+	2,  // 0: orchestrator.Task.id:type_name -> orchestrator.TaskID
+	1,  // 1: orchestrator.Task.first_argument:type_name -> orchestrator.Argument
+	1,  // 2: orchestrator.Task.second_argument:type_name -> orchestrator.Argument
+	0,  // 3: orchestrator.Task.status:type_name -> orchestrator.ETStatus
+	2,  // 4: orchestrator.TaskResult.taskID:type_name -> orchestrator.TaskID
+	5,  // 5: orchestrator.Expression.id:type_name -> orchestrator.ExpressionID
+	0,  // 6: orchestrator.Expression.status:type_name -> orchestrator.ETStatus
+	3,  // 7: orchestrator.Expression.tasks_queue:type_name -> orchestrator.Task
+	6,  // 8: orchestrator.Expressions.queue:type_name -> orchestrator.Expression
+	2,  // 9: orchestrator.OrchestratorService.GetTask:input_type -> orchestrator.TaskID
+	4,  // 10: orchestrator.OrchestratorService.SaveTaskResult:input_type -> orchestrator.TaskResult
+	7,  // 11: orchestrator.OrchestratorService.AddExpression:input_type -> orchestrator.AddedExpression
+	9,  // 12: orchestrator.OrchestratorService.GetExpressions:input_type -> google.protobuf.StringValue
+	5,  // 13: orchestrator.OrchestratorService.GetExpression:input_type -> orchestrator.ExpressionID
+	3,  // 14: orchestrator.OrchestratorService.GetTask:output_type -> orchestrator.Task
+	10, // 15: orchestrator.OrchestratorService.SaveTaskResult:output_type -> google.protobuf.Empty
+	11, // 16: orchestrator.OrchestratorService.AddExpression:output_type -> google.protobuf.Int32Value
+	8,  // 17: orchestrator.OrchestratorService.GetExpressions:output_type -> orchestrator.Expressions
+	6,  // 18: orchestrator.OrchestratorService.GetExpression:output_type -> orchestrator.Expression
+	14, // [14:19] is the sub-list for method output_type
+	9,  // [9:14] is the sub-list for method input_type
+	9,  // [9:9] is the sub-list for extension type_name
+	9,  // [9:9] is the sub-list for extension extendee
+	0,  // [0:9] is the sub-list for field type_name
 }
 
 func init() { file_proto_orchestrator_orchestrator_proto_init() }
@@ -586,7 +681,7 @@ func file_proto_orchestrator_orchestrator_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_orchestrator_orchestrator_proto_rawDesc), len(file_proto_orchestrator_orchestrator_proto_rawDesc)),
 			NumEnums:      1,
-			NumMessages:   6,
+			NumMessages:   8,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
