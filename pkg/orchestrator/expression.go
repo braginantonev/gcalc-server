@@ -294,7 +294,7 @@ func (s *Server) setTasksQueue(expression *pb.Expression) error {
 	}
 }
 
-func Register(ctx context.Context, grpcServer *grpc.Server, server_db *database.DataBase) error {
+func RegisterServer(ctx context.Context, grpcServer *grpc.Server, server_db *database.DataBase) error {
 	if server_db == nil {
 		return database.ErrDBNotInit
 	}
