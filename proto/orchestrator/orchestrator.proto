@@ -5,7 +5,8 @@ option go_package = "github.com/braginantonev/gcalc-server/proto/orchestrator";
 import "google/protobuf/empty.proto";
 import "google/protobuf/wrappers.proto";
 
-// Expression/Task status
+// Expression and task statuses
+
 enum ETStatus {
     Analyze = 0;
     Backlog = 1;
@@ -19,28 +20,7 @@ message Argument {
     int32 expected = 2;
 }
 
-//Todo: Добавить вместо id, expression_id - TaskID
-
-message TaskID {
-    int32 expression = 1;
-    int32 internal = 2;
-}
-
-message Task {
-    TaskID id = 1;
-    Argument first_argument = 2;
-    Argument second_argument = 3;
-    string operation = 4;
-    ETStatus status = 5;
-    string str = 6;
-    double answer = 7;
-}
-
-message TaskResult {
-    TaskID taskID = 1;
-    double result = 2;
-    string error = 3;
-}
+// Expression
 
 message ExpressionID {
     string user = 1;
@@ -51,8 +31,7 @@ message Expression {
     ExpressionID id = 1;
     ETStatus status = 2;
     string str = 3;
-    repeated Task tasks_queue = 4;
-    double result = 5;
+    double result = 4;
 }
 
 message AddedExpression {
@@ -62,6 +41,30 @@ message AddedExpression {
 
 message Expressions {
     repeated Expression queue = 1;
+}
+
+// Task
+
+message TaskID {
+    ExpressionID expression = 1;
+    int32 internal = 2;
+}
+
+message Task {
+    TaskID id = 1;
+    Argument first_argument = 2;
+    Argument second_argument = 3;
+    string operation = 4;
+    ETStatus status = 5;
+    bool isLast = 6;
+    string str = 7;
+    double answer = 8;
+}
+
+message TaskResult {
+    TaskID taskID = 1;
+    double result = 2;
+    string error = 3;
 }
 
 service OrchestratorService {
