@@ -2,15 +2,19 @@ package orchestrator
 
 import (
 	"context"
+	"fmt"
 	"log"
 
+	"github.com/braginantonev/gcalc-server/pkg/database"
+	dbreq "github.com/braginantonev/gcalc-server/pkg/database/requests-types"
+	"github.com/braginantonev/gcalc-server/pkg/orchestrator/orchreq"
+
 	pb "github.com/braginantonev/gcalc-server/proto/orchestrator"
+
 	"google.golang.org/grpc"
 	"google.golang.org/protobuf/types/known/emptypb"
 	"google.golang.org/protobuf/types/known/wrapperspb"
 )
-
-//Todo: Протестировать сервер
 
 type Operator string
 
@@ -24,56 +28,75 @@ const (
 	Multiply Operator = "*"
 	Division Operator = "/"
 	Equals   Operator = "="
+
+	END_STR        string = "end"
+	TASK_ID_FORMAT string = "%s-%d-%d" // User-ExpressionID-TaskID
 )
-
-const END_STR = "end"
-
-var expressionsQueue []*pb.Expression
 
 type Server struct {
 	pb.OrchestratorServiceServer
+	db                           *database.DataBase
+	unAuthorizedExpressionsQueue *pb.Expressions
+	tasks                        map[string]*pb.Task
 }
 
-func NewServer() *Server {
-	return &Server{}
+func NewServer(server_db *database.DataBase) *Server {
+	return &Server{
+		db:                           server_db,
+		unAuthorizedExpressionsQueue: &pb.Expressions{Queue: make([]*pb.Expression, 0)},
+		tasks:                        make(map[string]*pb.Task, 0),
+	}
 }
 
-/*
-In task set required expression id and task id. Use nil task to get task to solve (internal).
+// For test only!
+func (s *Server) GetTasksQueue() map[string]*pb.Task {
+	return s.tasks
+}
 
-Return: task; if nil - task to solve (internal)
-*/
-func (s *Server) GetTask(ctx context.Context, task *pb.TaskID) (*pb.Task, error) {
-	if task == nil || task.GetExpression() == -1 || task.GetInternal() == -1 {
-		expression, err := s.GetExpression(ctx, nil)
-		if err != nil {
-			return nil, err
-		}
-
-		for i := range expression.TasksQueue {
-			p_task := expression.TasksQueue[i]
-			if p_task.GetStatus() == pb.ETStatus_Backlog {
+// In task set required expression id and task id. Use taskID with internal id = -1, to get task to solve (internal).
+func (s *Server) GetTask(ctx context.Context, task_id *pb.TaskID) (*pb.Task, error) {
+	//log.Println("[Debug] GetTask() - get task with id:", task_id)
+	if task_id == nil || task_id.Expression.Internal == -1 || task_id.Internal == -1 {
+		for _, p_task := range s.tasks {
+			if p_task.Status == pb.ETStatus_Backlog {
 				p_task.Status = pb.ETStatus_InProgress
+
+				expression, err := s.GetExpression(ctx, p_task.Id.Expression)
+				if err != nil {
+					return nil, err
+				}
+
 				expression.Status = pb.ETStatus_InProgress
+				if task_id.Expression.User != "" {
+					err = s.db.Update(ctx, dbreq.NewDBRequest(orchreq.DBRequest_UPDATE_Expression, int32(expression.Status), 0.0, expression.Id.User, expression.Id.Internal))
+					if err != nil {
+						return nil, err
+					}
+				}
+
 				return p_task, nil
 			}
 		}
 		return nil, DHT
 	}
 
-	if len(expressionsQueue) == 0 {
-		return nil, nil
-	}
+	//log.Println("[Debug] GetTask() - find task with id", task_id)
 
-	req_task := expressionsQueue[task.Expression].TasksQueue[task.Internal]
-	if req_task == nil {
+	if len(s.tasks) == 0 {
 		return nil, ErrTaskNotFound
 	}
 
-	return req_task, nil
+	task, ok := s.tasks[fmt.Sprintf(TASK_ID_FORMAT, task_id.Expression.User, task_id.Expression.Internal, task_id.Internal)]
+	if ok {
+		//log.Println("[Debug] GetTask() - task found. Task:", task)
+		return task, nil
+	}
+
+	return nil, ErrTaskNotFound
 }
 
 func (s *Server) SaveTaskResult(ctx context.Context, result *pb.TaskResult) (*emptypb.Empty, error) {
+	//log.Println("[Debug] SaveTaskResult() - get task to save with taskId =", result.TaskID)
 	task, err := s.GetTask(ctx, result.TaskID)
 	if err != nil {
 		return nil, err
@@ -85,7 +108,7 @@ func (s *Server) SaveTaskResult(ctx context.Context, result *pb.TaskResult) (*em
 	}
 
 	//! if error - check this
-	expression, err := s.GetExpression(ctx, wrapperspb.Int32(task.GetExpressionId()))
+	expression, err := s.GetExpression(ctx, task.Id.Expression)
 	if err != nil {
 		return nil, err
 	}
@@ -93,30 +116,56 @@ func (s *Server) SaveTaskResult(ctx context.Context, result *pb.TaskResult) (*em
 	task.Answer = result.GetResult()
 	task.Status = pb.ETStatus_Complete
 
-	if task.GetId() == int32(len(expression.GetTasksQueue())-1) {
+	log.Println("Save -", task)
+
+	if task.IsLast {
 		expression.Result = result.GetResult()
 		expression.Status = pb.ETStatus_Complete
+
+		if expression.Id.User != "" {
+			err := s.db.Update(ctx, dbreq.NewDBRequest(orchreq.DBRequest_UPDATE_Expression, int32(expression.Status), expression.Result, expression.Id.User, expression.Id.Internal))
+			if err != nil {
+				return nil, err
+			}
+		}
 		return nil, nil
 	}
 
-	// Return true, if example result expected
+	// Return true, if task result expected
 	delExpectation := func(arg *pb.Argument) {
-		if arg.GetExpected() == task.Id {
+		if arg.GetExpected() == task.Id.Internal {
 			arg.Value = result.GetResult()
 			arg.Expected = -1
 		}
 	}
 
-	for _, p_task_local := range expression.GetTasksQueue() {
-		if task.GetId() == p_task_local.GetId() {
+	for i := 0; ; i++ {
+		//log.Println("[Debug] SaveTaskResult() - del expectation to task with id:", result.TaskID.Expression.User, result.TaskID.Expression.Internal, int32(i))
+		local_task, err := s.GetTask(ctx, pb.NewTaskIDWithValues(result.TaskID.Expression.User, result.TaskID.Expression.Internal, int32(i)))
+		if err != nil {
+			return nil, err
+		}
+
+		//log.Println("[Debug] SaveTaskResult() - got task:", local_task)
+
+		if task.GetId() == local_task.GetId() {
 			continue
 		}
 
-		delExpectation(p_task_local.GetFirstArgument())
-		delExpectation(p_task_local.GetSecondArgument())
+		if local_task.Status != pb.ETStatus_IsWaitingValues {
+			continue
+		}
 
-		if p_task_local.FirstArgument.GetExpected() == -1 && p_task_local.SecondArgument.GetExpected() == -1 {
-			p_task_local.Status = pb.ETStatus_Backlog
+		delExpectation(local_task.GetFirstArgument())
+		delExpectation(local_task.GetSecondArgument())
+
+		if local_task.FirstArgument.GetExpected() == -1 && local_task.SecondArgument.GetExpected() == -1 {
+			local_task.Status = pb.ETStatus_Backlog
+			//log.Println("[Debug] Expectation del succesfull. Task:", local_task, s.tasks)
+		}
+
+		if local_task.IsLast {
+			break
 		}
 	}
 
@@ -124,59 +173,92 @@ func (s *Server) SaveTaskResult(ctx context.Context, result *pb.TaskResult) (*em
 }
 
 // Return expression id and error
-func (s *Server) AddExpression(ctx context.Context, expression *wrapperspb.StringValue) (*wrapperspb.Int32Value, error) {
-	expression_str := expression.GetValue()
+func (s *Server) AddExpression(ctx context.Context, added_expression *pb.AddedExpression) (*wrapperspb.Int32Value, error) {
+	expression_str := added_expression.Str
 	if expression_str == "" {
 		return nil, ErrExpressionEmpty
 	}
 
-	ex := pb.Expression{
-		//!!! Если придётся реализовывать удаление выражения, то нужно изменить систему выдачи индекса !!!
-		//!!! При удалении элемента, длина уменьшается, следовательно следующее добавленное выражение, будет иметь такой же индекс, что и предпоследний !!!
-		Id:     int32(len(expressionsQueue)),
-		Status: pb.ETStatus_Analyze,
-		Str:    expression_str,
+	var ex *pb.Expression
+	if added_expression.User == "" { //Not authorized
+		ex = &pb.Expression{
+			Id:     &pb.ExpressionID{Internal: int32(len(s.unAuthorizedExpressionsQueue.Queue))},
+			Status: pb.ETStatus_Analyze,
+			Str:    expression_str,
+		}
+
+		if err := s.setTasksQueue(ex); err != nil {
+			return nil, err
+		}
+
+		s.unAuthorizedExpressionsQueue.Queue = append(s.unAuthorizedExpressionsQueue.Queue, ex)
+	} else {
+		expressions, err := s.GetExpressions(ctx, wrapperspb.String(added_expression.User))
+		if err != nil {
+			return nil, err
+		}
+
+		ex = &pb.Expression{
+			Id:     pb.NewExpressionIDWithValues(added_expression.User, int32(len(expressions.Queue))),
+			Status: pb.ETStatus_Analyze,
+			Str:    expression_str,
+		}
+
+		if err := s.setTasksQueue(ex); err != nil {
+			return nil, err
+		}
+
+		err = s.db.Add(ctx, dbreq.NewDBRequest(orchreq.DBRequest_INSERT_Expression, ex.Id.User, ex.Id.Internal, expression_str, int32(ex.Status), 0.0))
+		if err != nil {
+			return nil, err
+		}
 	}
 
-	if err := setTasksQueue(&ex); err != nil {
-		return nil, err
-	}
-
-	expressionsQueue = append(expressionsQueue, &ex)
-	return &wrapperspb.Int32Value{Value: ex.GetId()}, nil
+	return wrapperspb.Int32(ex.Id.Internal), nil
 }
 
-func (s *Server) GetExpressions(ctx context.Context, empty *emptypb.Empty) (*pb.Expressions, error) {
-	return &pb.Expressions{Queue: expressionsQueue}, nil
+func (s *Server) GetExpressions(ctx context.Context, user *wrapperspb.StringValue) (*pb.Expressions, error) {
+	if user.Value == "" { //Not authorized
+		return s.unAuthorizedExpressionsQueue, nil
+	} else {
+		db_resp, err := s.db.Get(ctx, dbreq.NewDBRequest(orchreq.DBRequest_SELECT_Expressions, user.Value))
+		if err != nil {
+			return nil, err
+		}
+		return db_resp.(*pb.Expressions), nil
+	}
 }
 
 /*
-In expression set required id. Use nil expression to get in working or backlog expression (internal).
+In expression set required id.
 
-Return: expression; if nil - in working or backlog expression (internal)
+Return: expression
 */
-func (s *Server) GetExpression(ctx context.Context, expression *wrapperspb.Int32Value) (*pb.Expression, error) {
-	if expression == nil {
-		for _, expression := range expressionsQueue {
-			expression_status := expression.GetStatus()
-			if expression_status == pb.ETStatus_InProgress || expression_status == pb.ETStatus_Backlog {
-				return expression, nil
-			}
-		}
-		return nil, DHT
+func (s *Server) GetExpression(ctx context.Context, expression_id *pb.ExpressionID) (*pb.Expression, error) {
+	if expression_id == nil || expression_id.Internal == -1 {
+		return nil, ErrExpressionNotFound
 	}
 
-	for _, local_expression := range expressionsQueue {
-		if local_expression.GetId() == expression.GetValue() {
+	if expression_id.User != "" {
+		got, err := s.db.Get(ctx, dbreq.NewDBRequest(orchreq.DBRequest_SELECT_Expression, expression_id.User, expression_id.Internal))
+		if err != nil {
+			return nil, err
+		}
+		return got.(*pb.Expression), nil
+	}
+
+	for _, local_expression := range s.unAuthorizedExpressionsQueue.Queue {
+		if local_expression.Id.User == expression_id.User && local_expression.Id.Internal == expression_id.Internal {
 			return local_expression, nil
 		}
 	}
-
 	return nil, ErrExpressionNotFound
 }
 
-func setTasksQueue(expression *pb.Expression) error {
+func (s *Server) setTasksQueue(expression *pb.Expression) error {
 	expression_str := expression.GetStr()
+	var last_task *pb.Task
+	var counter int32 = 0
 
 	for {
 		task, priority_idx, err := GetTask(expression_str)
@@ -187,32 +269,36 @@ func setTasksQueue(expression *pb.Expression) error {
 		task_str := task.GetStr()
 		if task_str == END_STR {
 			expression.Status = pb.ETStatus_Backlog
+			last_task.IsLast = true
+			log.Println(s.tasks)
 			return nil
 		}
 
 		if task.GetOperation() == Equals.ToString() {
-			expression_str = EraseExample(expression_str, task_str, priority_idx, expression.GetTasksQueue()[len(expression.TasksQueue)-1].Id)
+			expression_str = EraseExample(expression_str, task_str, priority_idx, counter-1)
 			continue
 		}
 
-		task.Id = int32(len(expression.GetTasksQueue()))
-		task.ExpressionId = expression.GetId()
+		task.Id = pb.NewTaskIDWithValues(expression.GetId().User, expression.GetId().Internal, counter)
 
 		if task.GetStatus() != pb.ETStatus_IsWaitingValues {
 			task.Status = pb.ETStatus_Backlog
 		}
 
-		expression.TasksQueue = append(expression.GetTasksQueue(), task)
+		s.tasks[fmt.Sprintf(TASK_ID_FORMAT, expression.Id.User, expression.Id.Internal, task.Id.Internal)] = task
+		last_task = task
 
-		expression_str = EraseExample(expression_str, task.GetStr(), priority_idx, task.GetId())
+		expression_str = EraseExample(expression_str, task.GetStr(), priority_idx, task.GetId().Internal)
+		counter++
+		log.Println("task", counter, task)
 	}
 }
 
-func Register(ctx context.Context, grpcServer *grpc.Server) error {
+func Register(ctx context.Context, grpcServer *grpc.Server, server_db *database.DataBase) error {
 	log.Println("Orchestrator: tcp listener started at port:")
 
-	orchestartorServiceServer := NewServer()
-	pb.RegisterOrchestratorServiceServer(grpcServer, orchestartorServiceServer)
+	orchestratorServiceServer := NewServer(server_db)
+	pb.RegisterOrchestratorServiceServer(grpcServer, orchestratorServiceServer)
 
 	return nil
 }

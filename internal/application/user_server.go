@@ -11,7 +11,7 @@ import (
 	"strconv"
 	"strings"
 
-	"google.golang.org/protobuf/types/known/emptypb"
+	orch_pb "github.com/braginantonev/gcalc-server/proto/orchestrator"
 	"google.golang.org/protobuf/types/known/wrapperspb"
 )
 
@@ -55,7 +55,10 @@ func AddExpressionHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	id, err := OrchestratorServiceClient.AddExpression(context.TODO(), wrapperspb.String(req.Expression))
+	//Todo: Создать расшифровку jwt токена, для получения имени пользователя
+	user := "San4hi"
+
+	id, err := OrchestratorServiceClient.AddExpression(context.TODO(), &orch_pb.AddedExpression{User: user, Str: req.Expression})
 	slog.Info("add expression to queue. ", slog.String("id", fmt.Sprint(id.GetValue())))
 
 	if err != nil {
@@ -87,7 +90,10 @@ func AddExpressionHandler(w http.ResponseWriter, r *http.Request) {
 func GetExpressionsQueueHandler(w http.ResponseWriter, r *http.Request) {
 	slog.Info("request - get expressions queue")
 
-	expressions, err := OrchestratorServiceClient.GetExpressions(context.TODO(), &emptypb.Empty{})
+	//Todo: Создать расшифровку jwt токена, для получения имени пользователя
+	user := "San4hi"
+
+	expressions, err := OrchestratorServiceClient.GetExpressions(context.TODO(), wrapperspb.String(user))
 	if err != nil {
 		slog.Error(err.Error())
 		w.WriteHeader(http.StatusInternalServerError)
@@ -100,7 +106,7 @@ func GetExpressionsQueueHandler(w http.ResponseWriter, r *http.Request) {
 
 	for _, exp := range expressions.GetQueue() {
 		resp.Expressions = append(resp.Expressions, ResponseExpression{
-			Id:     exp.Id,
+			Id:     exp.Id.Internal,
 			Status: exp.Status.String(),
 			Result: exp.Result,
 		})
@@ -128,7 +134,10 @@ func GetExpressionHandler(w http.ResponseWriter, r *http.Request) {
 
 	slog.Info("request - get expression.", slog.String("id", fmt.Sprint(id)))
 
-	exp, err := OrchestratorServiceClient.GetExpression(context.TODO(), wrapperspb.Int32(int32(id)))
+	//Todo: Создать расшифровку jwt токена, для получения имени пользователя
+	user := "San4hi"
+
+	exp, err := OrchestratorServiceClient.GetExpression(context.TODO(), orch_pb.NewExpressionIDWithValues(user, int32(id)))
 	if err != nil {
 		slog.Error("expression not found", slog.String("id", fmt.Sprint(id)), slog.String("err", err.Error()))
 		w.WriteHeader(http.StatusNotFound)
@@ -139,7 +148,7 @@ func GetExpressionHandler(w http.ResponseWriter, r *http.Request) {
 		Expression ResponseExpression `json:"expression"`
 	}{
 		Expression: ResponseExpression{
-			Id:     exp.Id,
+			Id:     exp.Id.Internal,
 			Status: exp.Status.String(),
 			Result: exp.Result,
 		},

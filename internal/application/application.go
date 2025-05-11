@@ -10,9 +10,12 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/braginantonev/gcalc-server/pkg/database"
+
 	"github.com/braginantonev/gcalc-server/pkg/agent"
 	"github.com/braginantonev/gcalc-server/pkg/orchestrator"
 	orch_pb "github.com/braginantonev/gcalc-server/proto/orchestrator"
+
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
@@ -73,16 +76,16 @@ func NewApplication() *Application {
 }
 
 func (app Application) Run(grpc_server *grpc.Server) error {
-	mux := http.NewServeMux()
-
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	mux.HandleFunc("/api/v1/calculate", RequestEmpty(AddExpressionHandler))
-	mux.HandleFunc("/api/v1/expressions", GetExpressionsQueueHandler)
-	mux.HandleFunc("/api/v1/expressions/", GetExpressionHandler)
+	//Todo: Добавить path в env app
+	db, err := database.NewDataBase(ctx, "data.db")
+	if err != nil {
+		return err
+	}
 
-	app.EnableOrchestratorService(grpc_server)
+	app.EnableOrchestratorService(grpc_server, db)
 
 	//* Start gRPC server
 	lis, err := net.Listen("tcp", app.cfg.GRPCServerAddress)
@@ -107,10 +110,14 @@ func (app Application) Run(grpc_server *grpc.Server) error {
 		panic(err)
 	}
 
-	// Create orchestrator client
 	OrchestratorServiceClient = orch_pb.NewOrchestratorServiceClient(GRPCConnectionClient)
-
 	agent.Enable(ctx, OrchestratorServiceClient, app.cfg.ComputingPower)
+
+	//* Start REST API main server
+	mux := http.NewServeMux()
+	mux.HandleFunc("/api/v1/calculate", RequestEmpty(AddExpressionHandler))
+	mux.HandleFunc("/api/v1/expressions", GetExpressionsQueueHandler)
+	mux.HandleFunc("/api/v1/expressions/", GetExpressionHandler)
 
 	slog.Info("Start server", slog.String("port", app.cfg.Port))
 	err = http.ListenAndServe(":"+app.cfg.Port, mux)
@@ -122,8 +129,8 @@ func (app Application) Run(grpc_server *grpc.Server) error {
 	return nil
 }
 
-func (app Application) EnableOrchestratorService(grpc_server *grpc.Server) {
-	orchestratorServiceServer := orchestrator.NewServer()
+func (app Application) EnableOrchestratorService(grpc_server *grpc.Server, db *database.DataBase) {
+	orchestratorServiceServer := orchestrator.NewServer(db)
 	orch_pb.RegisterOrchestratorServiceServer(grpc_server, orchestratorServiceServer)
 }
 

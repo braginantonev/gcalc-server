@@ -5,7 +5,8 @@ option go_package = "github.com/braginantonev/gcalc-server/proto/orchestrator";
 import "google/protobuf/empty.proto";
 import "google/protobuf/wrappers.proto";
 
-// Expression/Task status
+// Expression and task statuses
+
 enum ETStatus {
     Analyze = 0;
     Backlog = 1;
@@ -19,20 +20,45 @@ message Argument {
     int32 expected = 2;
 }
 
-message Task {
-    int32 id = 1;
-    int32 expression_id = 2;
-    Argument first_argument = 3;
-    Argument second_argument = 4;
-    string operation = 5;
-    ETStatus status = 6;
-    string str = 7;
-    double answer = 8;
+// Expression
+
+message ExpressionID {
+    string user = 1;
+    int32 internal = 2;
 }
 
+message Expression {
+    ExpressionID id = 1;
+    ETStatus status = 2;
+    string str = 3;
+    double result = 4;
+}
+
+message AddedExpression {
+    string user = 1;
+    string str = 2;
+}
+
+message Expressions {
+    repeated Expression queue = 1;
+}
+
+// Task
+
 message TaskID {
-    int32 expression = 1;
+    ExpressionID expression = 1;
     int32 internal = 2;
+}
+
+message Task {
+    TaskID id = 1;
+    Argument first_argument = 2;
+    Argument second_argument = 3;
+    string operation = 4;
+    ETStatus status = 5;
+    bool isLast = 6;
+    string str = 7;
+    double answer = 8;
 }
 
 message TaskResult {
@@ -41,22 +67,10 @@ message TaskResult {
     string error = 3;
 }
 
-message Expression {
-    int32 id = 1;
-    ETStatus status = 2;
-    string str = 3;
-    repeated Task tasks_queue = 4;
-    double result = 5;
-}
-
-message Expressions {
-    repeated Expression queue = 1;
-}
-
 service OrchestratorService {
     rpc GetTask (TaskID) returns (Task);    // GetTask()
     rpc SaveTaskResult (TaskResult) returns (google.protobuf.Empty);    // SetExampleResult() - return error
-    rpc AddExpression (google.protobuf.StringValue) returns (google.protobuf.Int32Value); // AddExpression()
-    rpc GetExpressions (google.protobuf.Empty) returns (Expressions);   // GetExpressionsQueue()
-    rpc GetExpression (google.protobuf.Int32Value) returns (Expression);    // GetExpression()
+    rpc AddExpression (AddedExpression) returns (google.protobuf.Int32Value); // AddExpression()
+    rpc GetExpressions (google.protobuf.StringValue) returns (Expressions);   // GetExpressionsQueue()
+    rpc GetExpression (ExpressionID) returns (Expression);    // GetExpression()
 }
