@@ -11,6 +11,7 @@ var (
 	ErrInternalError       error = errors.New("internal error")
 	ErrRequestBodyEmpty    error = errors.New("request body empty")
 	ErrUnsupportedBodyType error = errors.New("unsupported request body type")
+	ErrJWTTokenNotValid    error = errors.New("jwt token not valid -> relogin")
 
 	OrchestratorErrors []*error = []*error{
 		&orchestrator.ErrExpressionEmpty,

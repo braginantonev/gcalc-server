@@ -294,11 +294,15 @@ func (s *Server) setTasksQueue(expression *pb.Expression) error {
 	}
 }
 
-func Register(ctx context.Context, grpcServer *grpc.Server, server_db *database.DataBase) error {
-	log.Println("Orchestrator: tcp listener started at port:")
+func RegisterServer(ctx context.Context, grpcServer *grpc.Server, server_db *database.DataBase) error {
+	if server_db == nil {
+		return database.ErrDBNotInit
+	}
 
-	orchestratorServiceServer := NewServer(server_db)
-	pb.RegisterOrchestratorServiceServer(grpcServer, orchestratorServiceServer)
+	if err := server_db.Create(ctx, dbreq.NewDBRequest(orchreq.DBRequest_CREATE_Orchestrator_Table)); err != nil {
+		return err
+	}
 
+	pb.RegisterOrchestratorServiceServer(grpcServer, NewServer(server_db))
 	return nil
 }

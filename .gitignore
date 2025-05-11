@@ -1,1 +1,3 @@
-data.db
+expressions.db
+users.db
+.env

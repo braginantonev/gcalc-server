@@ -13,7 +13,9 @@ import (
 	"github.com/braginantonev/gcalc-server/pkg/database"
 
 	"github.com/braginantonev/gcalc-server/pkg/agent"
+	"github.com/braginantonev/gcalc-server/pkg/logreg"
 	"github.com/braginantonev/gcalc-server/pkg/orchestrator"
+	lr_pb "github.com/braginantonev/gcalc-server/proto/logreg"
 	orch_pb "github.com/braginantonev/gcalc-server/proto/orchestrator"
 
 	"google.golang.org/grpc"
@@ -23,10 +25,11 @@ import (
 // * -------------------- Config --------------------
 
 type Config struct {
-	Port              string
-	GRPCPort          string
-	GRPCServerAddress string
-	ComputingPower    int
+	Port               string
+	GRPCPort           string
+	GRPCServerAddress  string
+	JWTSecretSignature string
+	ComputingPower     int
 }
 
 func NewConfig() *Config {
@@ -54,6 +57,21 @@ func NewConfig() *Config {
 		slog.Warn("env: \"COMPUTING_POWER\" not found or not integer")
 	}
 	slog.Info("Set", slog.String("Computing power", fmt.Sprint(cfg.ComputingPower)))
+
+	cfg.JWTSecretSignature = os.Getenv("JWTSecretSignature")
+	if cfg.JWTSecretSignature == "" {
+		panic(`
+		!!! Attention !!!
+		JWT signature in env JWTSecretSignature not found.
+		Please go to README.md - Installation, and follow the instruction!
+		
+		!!! Внимание !!!
+		JWT сигнатура в переменной окружения JWTSecretSignature не найдена.
+		Пожалуйста перейдите в README.md - Installation и проследуйте инструкции!
+		`)
+	}
+
+	JWTSignature = cfg.JWTSecretSignature
 	return cfg
 }
 
@@ -62,7 +80,8 @@ func NewConfig() *Config {
 var (
 	GRPCConnectionClient      *grpc.ClientConn
 	OrchestratorServiceClient orch_pb.OrchestratorServiceClient
-	//LogRegClient lr_pb.LogRegServiceClient
+	LogRegClient              lr_pb.LogRegServiceClient
+	JWTSignature              string
 )
 
 // * ------------------- Application --------------------
@@ -80,12 +99,23 @@ func (app Application) Run(grpc_server *grpc.Server) error {
 	defer cancel()
 
 	//Todo: Добавить path в env app
-	db, err := database.NewDataBase(ctx, "data.db")
+	expressions_db, err := database.NewDataBase(ctx, "expressions.db")
 	if err != nil {
 		return err
 	}
 
-	app.EnableOrchestratorService(grpc_server, db)
+	users_db, err := database.NewDataBase(ctx, "users.db")
+	if err != nil {
+		return err
+	}
+
+	if err := logreg.RegisterServer(ctx, grpc_server, users_db, app.cfg.JWTSecretSignature); err != nil {
+		return err
+	}
+
+	if err := orchestrator.RegisterServer(ctx, grpc_server, expressions_db); err != nil {
+		return err
+	}
 
 	//* Start gRPC server
 	lis, err := net.Listen("tcp", app.cfg.GRPCServerAddress)
@@ -110,6 +140,7 @@ func (app Application) Run(grpc_server *grpc.Server) error {
 		panic(err)
 	}
 
+	LogRegClient = lr_pb.NewLogRegServiceClient(GRPCConnectionClient)
 	OrchestratorServiceClient = orch_pb.NewOrchestratorServiceClient(GRPCConnectionClient)
 	agent.Enable(ctx, OrchestratorServiceClient, app.cfg.ComputingPower)
 
@@ -118,6 +149,8 @@ func (app Application) Run(grpc_server *grpc.Server) error {
 	mux.HandleFunc("/api/v1/calculate", RequestEmpty(AddExpressionHandler))
 	mux.HandleFunc("/api/v1/expressions", GetExpressionsQueueHandler)
 	mux.HandleFunc("/api/v1/expressions/", GetExpressionHandler)
+	mux.HandleFunc("/api/v1/register", RegisterHandler)
+	mux.HandleFunc("/api/v1/login", LoginHandler)
 
 	slog.Info("Start server", slog.String("port", app.cfg.Port))
 	err = http.ListenAndServe(":"+app.cfg.Port, mux)
@@ -127,11 +160,6 @@ func (app Application) Run(grpc_server *grpc.Server) error {
 	}
 
 	return nil
-}
-
-func (app Application) EnableOrchestratorService(grpc_server *grpc.Server, db *database.DataBase) {
-	orchestratorServiceServer := orchestrator.NewServer(db)
-	orch_pb.RegisterOrchestratorServiceServer(grpc_server, orchestratorServiceServer)
 }
 
 // * ------------------- HTTP Server --------------------
@@ -149,4 +177,9 @@ type ResponseExpression struct {
 	Id     int32   `json:"id"`
 	Status string  `json:"status,omitempty"`
 	Result float64 `json:"result,omitempty"`
+}
+
+type User struct {
+	Name     string `json:"name"`
+	Password string `json:"password"`
 }

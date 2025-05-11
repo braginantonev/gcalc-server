@@ -3,7 +3,7 @@ package orchreq
 import dbreq "github.com/braginantonev/gcalc-server/pkg/database/requests-types"
 
 const (
-	DBRequest_CREATE_Table dbreq.DBRequestType = `
+	DBRequest_CREATE_Orchestrator_Table dbreq.DBRequestType = `
 	CREATE TABLE IF NOT EXISTS expressions(
 		id INTEGER PRIMARY KEY AUTOINCREMENT, 
 		user TEXT,

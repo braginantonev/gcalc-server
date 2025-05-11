@@ -8,8 +8,12 @@ import (
 	"sync"
 
 	dbreq "github.com/braginantonev/gcalc-server/pkg/database/requests-types"
+	"github.com/braginantonev/gcalc-server/pkg/logreg/lrreq"
 	"github.com/braginantonev/gcalc-server/pkg/orchestrator/orchreq"
+
+	lr_pb "github.com/braginantonev/gcalc-server/proto/logreg"
 	orch_pb "github.com/braginantonev/gcalc-server/proto/orchestrator"
+
 	_ "github.com/mattn/go-sqlite3"
 )
 
@@ -101,17 +105,29 @@ func (db *DataBase) Init(ctx context.Context) (err error) {
 	}
 
 	db.mux = &sync.RWMutex{}
-
-	//Orchestrator table
-	_, err = db.ExecContext(ctx, orchreq.DBRequest_CREATE_Table.ToString())
 	db.expressions_cache.Init()
 	return
 }
 
 /*
 Available requests:
+  - DBRequest_CREATE_Orchestrator_Table
+  - CREATE_LogReg_Table
+*/
+func (db *DataBase) Create(ctx context.Context, request dbreq.DBRequest) error {
+	if db.DB == nil {
+		return ErrDBNotInit
+	}
+
+	_, err := db.ExecContext(ctx, request.Type.ToString(), request.Args...)
+	return err
+}
+
+/*
+Available requests:
   - DBRequest_SELECT_Expressions (required 1 arg - user (string)). Return *pb.Expressions array
   - DBRequest_SELECT_Expression (required 2 args - user (string), internal_id (int32)). Return *pb.Expression
+  - SELECT_UserPass (required 1 arg - username (string)). Return *lr_pb.User
 */
 func (db *DataBase) Get(ctx context.Context, request dbreq.DBRequest) (any, error) {
 	if db.DB == nil {
@@ -169,6 +185,20 @@ func (db *DataBase) Get(ctx context.Context, request dbreq.DBRequest) (any, erro
 
 		exp.Status = orch_pb.ETStatus(status)
 		return &exp, nil
+
+	case lrreq.SELECT_UserPass:
+		if !request.ArgsIsValid(1) {
+			return nil, ErrBadArguments
+		}
+
+		db.mux.Lock()
+		defer db.mux.Unlock()
+		user := lr_pb.User{}
+		if err := db.QueryRowContext(ctx, request.Type.ToString(), request.Args...).Scan(&user.Name, &user.Password); err != nil {
+			return nil, err
+		}
+
+		return &user, nil
 	}
 
 	return nil, ErrUnexpectedRequestType
@@ -177,6 +207,7 @@ func (db *DataBase) Get(ctx context.Context, request dbreq.DBRequest) (any, erro
 /*
 Available requests:
   - DBRequest_INSERT_Expression (required 5 args - user (string), internal_id (int32), str (string), status (int32), result (float64))
+  - INSERT_UserPass (required 2 args - username (string), encrypted password (string))
 */
 func (db *DataBase) Add(ctx context.Context, request dbreq.DBRequest) error {
 	if db.DB == nil {
@@ -196,6 +227,18 @@ func (db *DataBase) Add(ctx context.Context, request dbreq.DBRequest) error {
 			Status: orch_pb.ETStatus(request.Args[3].(int32)),
 			Result: request.Args[4].(float64),
 		})
+
+		db.mux.Lock()
+		defer db.mux.Unlock()
+		if _, err := db.ExecContext(ctx, request.Type.ToString(), request.Args...); err != nil {
+			return err
+		}
+		return nil
+
+	case lrreq.INSERT_UserPass:
+		if !request.ArgsIsValid(2) {
+			return ErrBadArguments
+		}
 
 		db.mux.Lock()
 		defer db.mux.Unlock()
