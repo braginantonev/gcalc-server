@@ -23,13 +23,8 @@ const (
 	TIME_DIVISIONS_MS      = 4000
 )
 
-type LocalTaskID struct {
-	Expression int32
-	Internal   int32
-}
-
 var (
-	tasks           []LocalTaskID
+	tasks           []*pb.TaskID
 	orchClient      pb.OrchestratorServiceClient
 	COMPUTING_POWER int
 	TIMES_MS        = map[string]int{
@@ -41,7 +36,7 @@ var (
 )
 
 // Return true, if task has been appended, else - false
-func appendTask(taskID LocalTaskID) bool {
+func appendTask(taskID *pb.TaskID) bool {
 	if slices.Contains(tasks, taskID) {
 		return false
 	}
@@ -76,13 +71,13 @@ func Enable(ctx context.Context, orch_client pb.OrchestratorServiceClient, comp_
 					}
 
 					if got_err != nil {
-						fmt.Println("enter", got_err)
+						fmt.Println("enter", err_message)
 						SendRequest(task, got_err)
 						continue
 					}
 
 					mux.Lock()
-					if !appendTask(LocalTaskID{Expression: task.ExpressionId, Internal: task.Id}) {
+					if !appendTask(task.Id) {
 						mux.Unlock()
 						continue
 					}
@@ -101,7 +96,7 @@ func Enable(ctx context.Context, orch_client pb.OrchestratorServiceClient, comp_
 
 func SendRequest(task *pb.Task, err error) {
 	task_res := pb.NewTaskResult()
-	task_res.TaskID = pb.NewTaskIDWithValues(task.ExpressionId, task.Id)
+	task_res.TaskID = pb.NewTaskIDWithValues(task.Id.Expression.User, task.Id.Expression.Internal, task.Id.Internal)
 	if err != nil {
 		task_res.Error = err.Error()
 	} else {
