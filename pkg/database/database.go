@@ -7,14 +7,15 @@ import (
 	"strings"
 	"sync"
 
-	dbreq "github.com/braginantonev/gcalc-server/pkg/database/requests"
-	"github.com/braginantonev/gcalc-server/pkg/orchestrator"
+	dbreq "github.com/braginantonev/gcalc-server/pkg/database/requests-types"
+	"github.com/braginantonev/gcalc-server/pkg/orchestrator/orchreq"
 	orch_pb "github.com/braginantonev/gcalc-server/proto/orchestrator"
 	_ "github.com/mattn/go-sqlite3"
 )
 
 //! Если ничего не будет работать - чекать кэш, т.к. я хз как делать тесты для него, так что надеюсь, что он работает нормально
 //Todo: Добавить использование базы данных в орхестраторе
+//Todo: Добавить систему очистки кеша по времени
 
 type CacheConstrains interface {
 	*orch_pb.Expression
@@ -102,7 +103,7 @@ func (db *DataBase) Init(ctx context.Context) (err error) {
 	db.mux = &sync.RWMutex{}
 
 	//Orchestrator table
-	_, err = db.ExecContext(ctx, orchestrator.DBRequest_CREATE_Table.ToString())
+	_, err = db.ExecContext(ctx, orchreq.DBRequest_CREATE_Table.ToString())
 	db.expressions_cache.Init()
 	return
 }
@@ -118,14 +119,9 @@ func (db *DataBase) Get(ctx context.Context, request dbreq.DBRequest) (any, erro
 	}
 
 	switch request.Type {
-	case orchestrator.DBRequest_SELECT_Expressions:
+	case orchreq.DBRequest_SELECT_Expressions:
 		if !request.ArgsIsValid(1) {
 			return nil, ErrBadArguments
-		}
-
-		cache_res, ok := db.expressions_cache.GetUserValues(db.mux, request.Args[0].(string))
-		if ok {
-			return &orch_pb.Expressions{Queue: cache_res}, nil
 		}
 
 		db.mux.Lock()
@@ -139,10 +135,10 @@ func (db *DataBase) Get(ctx context.Context, request dbreq.DBRequest) (any, erro
 
 		expressions := orch_pb.Expressions{}
 		for rows.Next() {
-			exp := orch_pb.Expression{}
+			exp := orch_pb.Expression{Id: orch_pb.NewExpressionID()}
 			var status int32
 
-			err := rows.Scan(&exp.User, &exp.Id, &exp.Str, &status, &exp.Result)
+			err := rows.Scan(&exp.Id.User, &exp.Id.Internal, &exp.Str, &status, &exp.Result)
 			if err != nil {
 				return nil, err
 			}
@@ -152,7 +148,7 @@ func (db *DataBase) Get(ctx context.Context, request dbreq.DBRequest) (any, erro
 		}
 		return &expressions, nil
 
-	case orchestrator.DBRequest_SELECT_Expression:
+	case orchreq.DBRequest_SELECT_Expression:
 		if !request.ArgsIsValid(2) {
 			return nil, ErrBadArguments
 		}
@@ -162,12 +158,12 @@ func (db *DataBase) Get(ctx context.Context, request dbreq.DBRequest) (any, erro
 			return cache_res, nil
 		}
 
-		exp := orch_pb.Expression{}
+		exp := orch_pb.Expression{Id: orch_pb.NewExpressionID()}
 		var status int32
 
 		db.mux.Lock()
 		defer db.mux.Unlock()
-		if err := db.QueryRowContext(ctx, request.Type.ToString(), request.Args...).Scan(&exp.User, &exp.Id, &exp.Str, &status, &exp.Result); err != nil {
+		if err := db.QueryRowContext(ctx, request.Type.ToString(), request.Args...).Scan(&exp.Id.User, &exp.Id.Internal, &exp.Str, &status, &exp.Result); err != nil {
 			return nil, err
 		}
 
@@ -188,15 +184,14 @@ func (db *DataBase) Add(ctx context.Context, request dbreq.DBRequest) error {
 	}
 
 	switch request.Type {
-	case orchestrator.DBRequest_INSERT_Expression:
+	case orchreq.DBRequest_INSERT_Expression:
 		if !request.ArgsIsValid(5) {
 			return ErrBadArguments
 		}
 
 		user, id := request.Args[0].(string), request.Args[1].(int32)
 		db.expressions_cache.Set(db.mux, fmt.Sprintf("%s_%d", user, id), &orch_pb.Expression{
-			User:   user,
-			Id:     id,
+			Id:     orch_pb.NewExpressionIDWithValues(user, id),
 			Str:    request.Args[2].(string),
 			Status: orch_pb.ETStatus(request.Args[3].(int32)),
 			Result: request.Args[4].(float64),
@@ -223,13 +218,13 @@ func (db *DataBase) Update(ctx context.Context, request dbreq.DBRequest) error {
 	}
 
 	switch request.Type {
-	case orchestrator.DBRequest_UPDATE_Expression:
+	case orchreq.DBRequest_UPDATE_Expression:
 		if !request.ArgsIsValid(4) {
 			return ErrBadArguments
 		}
 
 		cache_id := fmt.Sprintf("%s_%d", request.Args[2], request.Args[3])
-		if orch_pb.ETStatus(request.Args[0].(int32)) == orch_pb.ETStatus_Complete {
+		if request.Args[0].(int32) == int32(orch_pb.ETStatus_Complete) {
 			db.expressions_cache.Pop(db.mux, cache_id)
 		} else {
 			if !db.expressions_cache.UpdateExpression(db.mux, cache_id, request.Args[:2]...) {
