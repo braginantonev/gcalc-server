@@ -27,8 +27,8 @@ const (
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type LogRegServiceClient interface {
-	Login(ctx context.Context, in *Request, opts ...grpc.CallOption) (*Response, error)
-	Register(ctx context.Context, in *Request, opts ...grpc.CallOption) (*Response, error)
+	Login(ctx context.Context, in *User, opts ...grpc.CallOption) (*JWT, error)
+	Register(ctx context.Context, in *User, opts ...grpc.CallOption) (*JWT, error)
 }
 
 type logRegServiceClient struct {
@@ -39,9 +39,9 @@ func NewLogRegServiceClient(cc grpc.ClientConnInterface) LogRegServiceClient {
 	return &logRegServiceClient{cc}
 }
 
-func (c *logRegServiceClient) Login(ctx context.Context, in *Request, opts ...grpc.CallOption) (*Response, error) {
+func (c *logRegServiceClient) Login(ctx context.Context, in *User, opts ...grpc.CallOption) (*JWT, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(Response)
+	out := new(JWT)
 	err := c.cc.Invoke(ctx, LogRegService_Login_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -49,9 +49,9 @@ func (c *logRegServiceClient) Login(ctx context.Context, in *Request, opts ...gr
 	return out, nil
 }
 
-func (c *logRegServiceClient) Register(ctx context.Context, in *Request, opts ...grpc.CallOption) (*Response, error) {
+func (c *logRegServiceClient) Register(ctx context.Context, in *User, opts ...grpc.CallOption) (*JWT, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(Response)
+	out := new(JWT)
 	err := c.cc.Invoke(ctx, LogRegService_Register_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -63,8 +63,8 @@ func (c *logRegServiceClient) Register(ctx context.Context, in *Request, opts ..
 // All implementations must embed UnimplementedLogRegServiceServer
 // for forward compatibility.
 type LogRegServiceServer interface {
-	Login(context.Context, *Request) (*Response, error)
-	Register(context.Context, *Request) (*Response, error)
+	Login(context.Context, *User) (*JWT, error)
+	Register(context.Context, *User) (*JWT, error)
 	mustEmbedUnimplementedLogRegServiceServer()
 }
 
@@ -75,10 +75,10 @@ type LogRegServiceServer interface {
 // pointer dereference when methods are called.
 type UnimplementedLogRegServiceServer struct{}
 
-func (UnimplementedLogRegServiceServer) Login(context.Context, *Request) (*Response, error) {
+func (UnimplementedLogRegServiceServer) Login(context.Context, *User) (*JWT, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Login not implemented")
 }
-func (UnimplementedLogRegServiceServer) Register(context.Context, *Request) (*Response, error) {
+func (UnimplementedLogRegServiceServer) Register(context.Context, *User) (*JWT, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Register not implemented")
 }
 func (UnimplementedLogRegServiceServer) mustEmbedUnimplementedLogRegServiceServer() {}
@@ -103,7 +103,7 @@ func RegisterLogRegServiceServer(s grpc.ServiceRegistrar, srv LogRegServiceServe
 }
 
 func _LogRegService_Login_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(Request)
+	in := new(User)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -115,13 +115,13 @@ func _LogRegService_Login_Handler(srv interface{}, ctx context.Context, dec func
 		FullMethod: LogRegService_Login_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(LogRegServiceServer).Login(ctx, req.(*Request))
+		return srv.(LogRegServiceServer).Login(ctx, req.(*User))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
 func _LogRegService_Register_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(Request)
+	in := new(User)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -133,7 +133,7 @@ func _LogRegService_Register_Handler(srv interface{}, ctx context.Context, dec f
 		FullMethod: LogRegService_Register_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(LogRegServiceServer).Register(ctx, req.(*Request))
+		return srv.(LogRegServiceServer).Register(ctx, req.(*User))
 	}
 	return interceptor(ctx, in, info, handler)
 }

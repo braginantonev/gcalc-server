@@ -21,28 +21,28 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-type Request struct {
+type User struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Username      string                 `protobuf:"bytes,1,opt,name=username,proto3" json:"username,omitempty"`
+	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
 	Password      string                 `protobuf:"bytes,2,opt,name=password,proto3" json:"password,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *Request) Reset() {
-	*x = Request{}
+func (x *User) Reset() {
+	*x = User{}
 	mi := &file_proto_logreg_logreg_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *Request) String() string {
+func (x *User) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*Request) ProtoMessage() {}
+func (*User) ProtoMessage() {}
 
-func (x *Request) ProtoReflect() protoreflect.Message {
+func (x *User) ProtoReflect() protoreflect.Message {
 	mi := &file_proto_logreg_logreg_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -54,46 +54,46 @@ func (x *Request) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use Request.ProtoReflect.Descriptor instead.
-func (*Request) Descriptor() ([]byte, []int) {
+// Deprecated: Use User.ProtoReflect.Descriptor instead.
+func (*User) Descriptor() ([]byte, []int) {
 	return file_proto_logreg_logreg_proto_rawDescGZIP(), []int{0}
 }
 
-func (x *Request) GetUsername() string {
+func (x *User) GetName() string {
 	if x != nil {
-		return x.Username
+		return x.Name
 	}
 	return ""
 }
 
-func (x *Request) GetPassword() string {
+func (x *User) GetPassword() string {
 	if x != nil {
 		return x.Password
 	}
 	return ""
 }
 
-type Response struct {
+type JWT struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	JWTToken      string                 `protobuf:"bytes,1,opt,name=JWTToken,proto3" json:"JWTToken,omitempty"`
+	Token         string                 `protobuf:"bytes,1,opt,name=Token,proto3" json:"Token,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *Response) Reset() {
-	*x = Response{}
+func (x *JWT) Reset() {
+	*x = JWT{}
 	mi := &file_proto_logreg_logreg_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *Response) String() string {
+func (x *JWT) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*Response) ProtoMessage() {}
+func (*JWT) ProtoMessage() {}
 
-func (x *Response) ProtoReflect() protoreflect.Message {
+func (x *JWT) ProtoReflect() protoreflect.Message {
 	mi := &file_proto_logreg_logreg_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -105,14 +105,14 @@ func (x *Response) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use Response.ProtoReflect.Descriptor instead.
-func (*Response) Descriptor() ([]byte, []int) {
+// Deprecated: Use JWT.ProtoReflect.Descriptor instead.
+func (*JWT) Descriptor() ([]byte, []int) {
 	return file_proto_logreg_logreg_proto_rawDescGZIP(), []int{1}
 }
 
-func (x *Response) GetJWTToken() string {
+func (x *JWT) GetToken() string {
 	if x != nil {
-		return x.JWTToken
+		return x.Token
 	}
 	return ""
 }
@@ -121,15 +121,15 @@ var File_proto_logreg_logreg_proto protoreflect.FileDescriptor
 
 const file_proto_logreg_logreg_proto_rawDesc = "" +
 	"\n" +
-	"\x19proto/logreg/logreg.proto\x12\x06logreg\"A\n" +
-	"\aRequest\x12\x1a\n" +
-	"\busername\x18\x01 \x01(\tR\busername\x12\x1a\n" +
-	"\bpassword\x18\x02 \x01(\tR\bpassword\"&\n" +
-	"\bResponse\x12\x1a\n" +
-	"\bJWTToken\x18\x01 \x01(\tR\bJWTToken2j\n" +
-	"\rLogRegService\x12*\n" +
-	"\x05Login\x12\x0f.logreg.Request\x1a\x10.logreg.Response\x12-\n" +
-	"\bRegister\x12\x0f.logreg.Request\x1a\x10.logreg.ResponseB4Z2github.com/braginantonev/gcalc-server/proto/logregb\x06proto3"
+	"\x19proto/logreg/logreg.proto\x12\x06logreg\"6\n" +
+	"\x04User\x12\x12\n" +
+	"\x04name\x18\x01 \x01(\tR\x04name\x12\x1a\n" +
+	"\bpassword\x18\x02 \x01(\tR\bpassword\"\x1b\n" +
+	"\x03JWT\x12\x14\n" +
+	"\x05Token\x18\x01 \x01(\tR\x05Token2Z\n" +
+	"\rLogRegService\x12\"\n" +
+	"\x05Login\x12\f.logreg.User\x1a\v.logreg.JWT\x12%\n" +
+	"\bRegister\x12\f.logreg.User\x1a\v.logreg.JWTB4Z2github.com/braginantonev/gcalc-server/proto/logregb\x06proto3"
 
 var (
 	file_proto_logreg_logreg_proto_rawDescOnce sync.Once
@@ -145,14 +145,14 @@ func file_proto_logreg_logreg_proto_rawDescGZIP() []byte {
 
 var file_proto_logreg_logreg_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
 var file_proto_logreg_logreg_proto_goTypes = []any{
-	(*Request)(nil),  // 0: logreg.Request
-	(*Response)(nil), // 1: logreg.Response
+	(*User)(nil), // 0: logreg.User
+	(*JWT)(nil),  // 1: logreg.JWT
 }
 var file_proto_logreg_logreg_proto_depIdxs = []int32{
-	0, // 0: logreg.LogRegService.Login:input_type -> logreg.Request
-	0, // 1: logreg.LogRegService.Register:input_type -> logreg.Request
-	1, // 2: logreg.LogRegService.Login:output_type -> logreg.Response
-	1, // 3: logreg.LogRegService.Register:output_type -> logreg.Response
+	0, // 0: logreg.LogRegService.Login:input_type -> logreg.User
+	0, // 1: logreg.LogRegService.Register:input_type -> logreg.User
+	1, // 2: logreg.LogRegService.Login:output_type -> logreg.JWT
+	1, // 3: logreg.LogRegService.Register:output_type -> logreg.JWT
 	2, // [2:4] is the sub-list for method output_type
 	0, // [0:2] is the sub-list for method input_type
 	0, // [0:0] is the sub-list for extension type_name
