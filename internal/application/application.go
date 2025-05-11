@@ -58,8 +58,19 @@ func NewConfig() *Config {
 	}
 	slog.Info("Set", slog.String("Computing power", fmt.Sprint(cfg.ComputingPower)))
 
-	//Todo: Поменять на получение из .env файла
-	cfg.JWTSecretSignature = "super_secret_signature"
+	cfg.JWTSecretSignature = os.Getenv("JWTSecretSignature")
+	if cfg.JWTSecretSignature == "" {
+		panic(`
+		!!! Attention !!!
+		JWT signature in env JWTSecretSignature not found.
+		Please go to README.md - Installation, and follow the instruction!
+		
+		!!! Внимание !!!
+		JWT сигнатура в переменной окружения JWTSecretSignature не найдена.
+		Пожалуйста перейдите в README.md - Installation и проследуйте инструкции!
+		`)
+	}
+
 	JWTSignature = cfg.JWTSecretSignature
 	return cfg
 }
