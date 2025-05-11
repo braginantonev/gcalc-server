@@ -1,6 +1,6 @@
-package orchestrator
+package orchreq
 
-import dbreq "github.com/braginantonev/gcalc-server/pkg/database/requests"
+import dbreq "github.com/braginantonev/gcalc-server/pkg/database/requests-types"
 
 const (
 	DBRequest_CREATE_Table dbreq.DBRequestType = `
