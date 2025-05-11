@@ -105,11 +105,22 @@ func (db *DataBase) Init(ctx context.Context) (err error) {
 	}
 
 	db.mux = &sync.RWMutex{}
-
-	//Orchestrator table
-	_, err = db.ExecContext(ctx, orchreq.DBRequest_CREATE_Table.ToString())
 	db.expressions_cache.Init()
 	return
+}
+
+/*
+Available requests:
+  - DBRequest_CREATE_Orchestrator_Table
+  - CREATE_LogReg_Table
+*/
+func (db *DataBase) Create(ctx context.Context, request dbreq.DBRequest) error {
+	if db.DB == nil {
+		return ErrDBNotInit
+	}
+
+	_, err := db.ExecContext(ctx, request.Type.ToString(), request.Args...)
+	return err
 }
 
 /*

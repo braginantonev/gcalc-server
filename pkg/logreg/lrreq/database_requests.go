@@ -3,7 +3,7 @@ package lrreq
 import dbreq "github.com/braginantonev/gcalc-server/pkg/database/requests-types"
 
 const (
-	CREATE_Table dbreq.DBRequestType = `
+	CREATE_LogReg_Table dbreq.DBRequestType = `
 	CREATE TABLE IF NOT EXISTS users(
 		id INTEGER PRIMARY KEY AUTOINCREMENT, 
 		user TEXT UNIQUE,

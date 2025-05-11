@@ -299,6 +299,10 @@ func Register(ctx context.Context, grpcServer *grpc.Server, server_db *database.
 		return database.ErrDBNotInit
 	}
 
+	if err := server_db.Create(ctx, dbreq.NewDBRequest(orchreq.DBRequest_CREATE_Orchestrator_Table)); err != nil {
+		return err
+	}
+
 	pb.RegisterOrchestratorServiceServer(grpcServer, NewServer(server_db))
 	return nil
 }
