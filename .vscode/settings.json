@@ -1,8 +1,11 @@
 {
     "cSpell.words": [
+        "AUTOINCREMENT",
         "dbreq",
         "emptypb",
         "gcalc",
+        "logreg",
+        "lrreq",
         "orchreq",
         "wrapperspb"
     ]
