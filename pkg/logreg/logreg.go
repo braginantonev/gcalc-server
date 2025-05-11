@@ -48,7 +48,7 @@ func (s *Server) Login(ctx context.Context, user *pb.User) (*pb.JWT, error) {
 		"name": got_user.(*pb.User).Name,
 		"nbf":  now.Unix(),
 		"exp":  now.Add(24 * time.Hour).Unix(),
-		"iat":  now,
+		"iat":  now.Unix(),
 	})
 
 	token_str, err := token.SignedString([]byte(s.jwt_signature))
