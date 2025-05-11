@@ -33,7 +33,6 @@ const (
 	TASK_ID_FORMAT string = "%s-%d-%d" // User-ExpressionID-TaskID
 )
 
-// Todo: Добавить поле базы данных в сервер и его инициализацию
 type Server struct {
 	pb.OrchestratorServiceServer
 	db                           *database.DataBase
@@ -62,16 +61,14 @@ func (s *Server) GetTask(ctx context.Context, task_id *pb.TaskID) (*pb.Task, err
 			if p_task.Status == pb.ETStatus_Backlog {
 				p_task.Status = pb.ETStatus_InProgress
 
-				//Todo: Сделать получение Expression только для не авторизованого пользователя
 				expression, err := s.GetExpression(ctx, p_task.Id.Expression)
 				if err != nil {
 					return nil, err
 				}
 
-				if task_id.Expression.User == "" {
-					expression.Status = pb.ETStatus_InProgress
-				} else {
-					err := s.db.Update(ctx, dbreq.NewDBRequest(orchreq.DBRequest_UPDATE_Expression, int32(expression.Status), 0.0, expression.Id.User, expression.Id.Internal))
+				expression.Status = pb.ETStatus_InProgress
+				if task_id.Expression.User != "" {
+					err = s.db.Update(ctx, dbreq.NewDBRequest(orchreq.DBRequest_UPDATE_Expression, int32(expression.Status), 0.0, expression.Id.User, expression.Id.Internal))
 					if err != nil {
 						return nil, err
 					}
@@ -85,7 +82,6 @@ func (s *Server) GetTask(ctx context.Context, task_id *pb.TaskID) (*pb.Task, err
 
 	//log.Println("[Debug] GetTask() - find task with id", task_id)
 
-	//Todo: Проверить, нужно ли это условие
 	if len(s.tasks) == 0 {
 		return nil, ErrTaskNotFound
 	}
@@ -251,7 +247,6 @@ func (s *Server) GetExpression(ctx context.Context, expression_id *pb.Expression
 		return got.(*pb.Expression), nil
 	}
 
-	//Todo: Добавить проверку на пользователя
 	for _, local_expression := range s.unAuthorizedExpressionsQueue.Queue {
 		if local_expression.Id.User == expression_id.User && local_expression.Id.Internal == expression_id.Internal {
 			return local_expression, nil
