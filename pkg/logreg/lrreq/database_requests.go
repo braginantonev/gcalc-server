@@ -6,7 +6,7 @@ const (
 	CREATE_Table dbreq.DBRequestType = `
 	CREATE TABLE IF NOT EXISTS users(
 		id INTEGER PRIMARY KEY AUTOINCREMENT, 
-		user TEXT,
+		user TEXT UNIQUE,
 		password TEXT
 	);`
 
