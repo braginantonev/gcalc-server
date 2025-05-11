@@ -1,3 +1,17 @@
 syntax = "proto3"; // версия proto файлов
 package logreg; // название пакета
 option go_package = "github.com/braginantonev/gcalc-server/proto/logreg";
+
+message Request {
+    string username = 1;
+    string password = 2;
+}
+
+message Response {
+    string JWTToken = 1;
+}
+
+service LogRegService {
+    rpc Login (Request) returns (Response);
+    rpc Register (Request) returns (Response);
+}
