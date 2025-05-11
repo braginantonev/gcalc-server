@@ -7,6 +7,7 @@
         "logreg",
         "lrreq",
         "orchreq",
+        "relogin",
         "wrapperspb"
     ]
 }
