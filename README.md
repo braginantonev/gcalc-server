@@ -13,7 +13,7 @@ A web service that accepts a complex expression in the form of JSON and returns 
 3. Setup your server:
    - Create ```.env``` file: 
      * For Linux: ```touch .env```
-     * For Windows: ```echo.  > .env```
+     * For Windows: ```echo.  > .env``` (P.S. У меня нет винды, простите если не сработает. Создайте файл другим образом)
    - In ```.env``` write the following environments: 
 ``` .env
 PORT=8080
