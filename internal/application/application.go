@@ -15,6 +15,7 @@ import (
 	"github.com/braginantonev/gcalc-server/pkg/agent"
 	"github.com/braginantonev/gcalc-server/pkg/logreg"
 	"github.com/braginantonev/gcalc-server/pkg/orchestrator"
+	lr_pb "github.com/braginantonev/gcalc-server/proto/logreg"
 	orch_pb "github.com/braginantonev/gcalc-server/proto/orchestrator"
 
 	"google.golang.org/grpc"
@@ -56,6 +57,10 @@ func NewConfig() *Config {
 		slog.Warn("env: \"COMPUTING_POWER\" not found or not integer")
 	}
 	slog.Info("Set", slog.String("Computing power", fmt.Sprint(cfg.ComputingPower)))
+
+	//Todo: Поменять на получение из .env файла
+	cfg.JWTSecretSignature = "super_secret_signature"
+	JWTSignature = cfg.JWTSecretSignature
 	return cfg
 }
 
@@ -64,7 +69,8 @@ func NewConfig() *Config {
 var (
 	GRPCConnectionClient      *grpc.ClientConn
 	OrchestratorServiceClient orch_pb.OrchestratorServiceClient
-	//LogRegClient lr_pb.LogRegServiceClient
+	LogRegClient              lr_pb.LogRegServiceClient
+	JWTSignature              string
 )
 
 // * ------------------- Application --------------------
@@ -92,11 +98,11 @@ func (app Application) Run(grpc_server *grpc.Server) error {
 		return err
 	}
 
-	if err := orchestrator.RegisterServer(ctx, grpc_server, expressions_db); err != nil {
+	if err := logreg.RegisterServer(ctx, grpc_server, users_db, app.cfg.JWTSecretSignature); err != nil {
 		return err
 	}
 
-	if err := logreg.RegisterServer(ctx, grpc_server, users_db, app.cfg.JWTSecretSignature); err != nil {
+	if err := orchestrator.RegisterServer(ctx, grpc_server, expressions_db); err != nil {
 		return err
 	}
 
@@ -123,6 +129,7 @@ func (app Application) Run(grpc_server *grpc.Server) error {
 		panic(err)
 	}
 
+	LogRegClient = lr_pb.NewLogRegServiceClient(GRPCConnectionClient)
 	OrchestratorServiceClient = orch_pb.NewOrchestratorServiceClient(GRPCConnectionClient)
 	agent.Enable(ctx, OrchestratorServiceClient, app.cfg.ComputingPower)
 
@@ -131,6 +138,8 @@ func (app Application) Run(grpc_server *grpc.Server) error {
 	mux.HandleFunc("/api/v1/calculate", RequestEmpty(AddExpressionHandler))
 	mux.HandleFunc("/api/v1/expressions", GetExpressionsQueueHandler)
 	mux.HandleFunc("/api/v1/expressions/", GetExpressionHandler)
+	mux.HandleFunc("/api/v1/register", RegisterHandler)
+	mux.HandleFunc("/api/v1/login", LoginHandler)
 
 	slog.Info("Start server", slog.String("port", app.cfg.Port))
 	err = http.ListenAndServe(":"+app.cfg.Port, mux)
@@ -157,4 +166,9 @@ type ResponseExpression struct {
 	Id     int32   `json:"id"`
 	Status string  `json:"status,omitempty"`
 	Result float64 `json:"result,omitempty"`
+}
+
+type User struct {
+	Name     string `json:"name"`
+	Password string `json:"password"`
 }

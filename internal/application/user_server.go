@@ -11,11 +11,44 @@ import (
 	"strconv"
 	"strings"
 
+	lr_pb "github.com/braginantonev/gcalc-server/proto/logreg"
 	orch_pb "github.com/braginantonev/gcalc-server/proto/orchestrator"
+	"github.com/golang-jwt/jwt/v5"
+	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/wrapperspb"
 )
 
 var expression []byte
+
+func getUsername(r *http.Request) (string, bool) {
+	token := r.Header.Get("Authorization")
+	if token == "" {
+		return "", true
+	}
+
+	if token[:6] == "Bearer" {
+		token = token[7:]
+	}
+
+	tokenFromString, err := jwt.Parse(token, func(token *jwt.Token) (any, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
+		}
+
+		return []byte(JWTSignature), nil
+	})
+
+	if err != nil {
+		fmt.Println(err)
+		return "", false
+	}
+
+	if claims, ok := tokenFromString.Claims.(jwt.MapClaims); ok {
+		return claims["name"].(string), true
+	} else {
+		return "", false
+	}
+}
 
 func logFailedConvert(handler_name, resp_json string, w *http.ResponseWriter) {
 	(*w).WriteHeader(http.StatusInternalServerError)
@@ -56,9 +89,14 @@ func AddExpressionHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//Todo: Создать расшифровку jwt токена, для получения имени пользователя
-	user := "San4hi"
+	username, ok := getUsername(r)
+	if !ok {
+		w.WriteHeader(http.StatusUnauthorized)
+		w.Write([]byte(ErrJWTTokenNotValid.Error()))
+		return
+	}
 
-	id, err := OrchestratorServiceClient.AddExpression(context.TODO(), &orch_pb.AddedExpression{User: user, Str: req.Expression})
+	id, err := OrchestratorServiceClient.AddExpression(context.TODO(), &orch_pb.AddedExpression{User: username, Str: req.Expression})
 	slog.Info("add expression to queue. ", slog.String("id", fmt.Sprint(id.GetValue())))
 
 	if err != nil {
@@ -90,10 +128,14 @@ func AddExpressionHandler(w http.ResponseWriter, r *http.Request) {
 func GetExpressionsQueueHandler(w http.ResponseWriter, r *http.Request) {
 	slog.Info("request - get expressions queue")
 
-	//Todo: Создать расшифровку jwt токена, для получения имени пользователя
-	user := "San4hi"
+	username, ok := getUsername(r)
+	if !ok {
+		w.WriteHeader(http.StatusUnauthorized)
+		w.Write([]byte(ErrJWTTokenNotValid.Error()))
+		return
+	}
 
-	expressions, err := OrchestratorServiceClient.GetExpressions(context.TODO(), wrapperspb.String(user))
+	expressions, err := OrchestratorServiceClient.GetExpressions(context.TODO(), wrapperspb.String(username))
 	if err != nil {
 		slog.Error(err.Error())
 		w.WriteHeader(http.StatusInternalServerError)
@@ -134,10 +176,14 @@ func GetExpressionHandler(w http.ResponseWriter, r *http.Request) {
 
 	slog.Info("request - get expression.", slog.String("id", fmt.Sprint(id)))
 
-	//Todo: Создать расшифровку jwt токена, для получения имени пользователя
-	user := "San4hi"
+	username, ok := getUsername(r)
+	if !ok {
+		w.WriteHeader(http.StatusUnauthorized)
+		w.Write([]byte(ErrJWTTokenNotValid.Error()))
+		return
+	}
 
-	exp, err := OrchestratorServiceClient.GetExpression(context.TODO(), orch_pb.NewExpressionIDWithValues(user, int32(id)))
+	exp, err := OrchestratorServiceClient.GetExpression(context.TODO(), orch_pb.NewExpressionIDWithValues(username, int32(id)))
 	if err != nil {
 		slog.Error("expression not found", slog.String("id", fmt.Sprint(id)), slog.String("err", err.Error()))
 		w.WriteHeader(http.StatusNotFound)
@@ -163,4 +209,76 @@ func GetExpressionHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	w.Write(resp_json)
+}
+
+func LoginHandler(w http.ResponseWriter, r *http.Request) {
+	slog.Info("Request - Login")
+
+	readed, err := io.ReadAll(r.Body)
+	if err != nil {
+		slog.Error(err.Error())
+		w.WriteHeader(http.StatusInternalServerError)
+	}
+
+	if len(readed) == 0 {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	user := lr_pb.User{}
+	if err := json.Unmarshal(readed, &user); err != nil {
+		slog.Error(err.Error())
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	jwt, err := LogRegClient.Login(context.TODO(), &user)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		if st, ok := status.FromError(err); ok {
+			w.Header().Set("Content-Type", "text/plain")
+			w.Write([]byte(st.Message()))
+		}
+		return
+	}
+
+	w.Header().Set("Content-Type", "text/plain")
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte(jwt.Token))
+}
+
+func RegisterHandler(w http.ResponseWriter, r *http.Request) {
+	slog.Info("Request - Register")
+
+	readed, err := io.ReadAll(r.Body)
+	if err != nil {
+		slog.Error(err.Error())
+		w.WriteHeader(http.StatusInternalServerError)
+	}
+
+	if len(readed) == 0 {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	user := lr_pb.User{}
+	if err := json.Unmarshal(readed, &user); err != nil {
+		slog.Error(err.Error())
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	jwt, err := LogRegClient.Register(context.TODO(), &user)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		if st, ok := status.FromError(err); ok {
+			w.Header().Set("Content-Type", "text/plain")
+			w.Write([]byte(st.Message()))
+		}
+		return
+	}
+
+	w.Header().Set("Content-Type", "text/plain")
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte(jwt.Token))
 }
