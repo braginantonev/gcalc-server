@@ -80,7 +80,7 @@ func (app Application) Run(grpc_server *grpc.Server) error {
 	defer cancel()
 
 	//Todo: Добавить path в env app
-	db, err := database.NewDataBase(ctx, "store.db")
+	db, err := database.NewDataBase(ctx, "data.db")
 	if err != nil {
 		return err
 	}
