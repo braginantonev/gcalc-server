@@ -13,6 +13,7 @@ import (
 	"github.com/braginantonev/gcalc-server/pkg/database"
 
 	"github.com/braginantonev/gcalc-server/pkg/agent"
+	"github.com/braginantonev/gcalc-server/pkg/logreg"
 	"github.com/braginantonev/gcalc-server/pkg/orchestrator"
 	orch_pb "github.com/braginantonev/gcalc-server/proto/orchestrator"
 
@@ -23,10 +24,11 @@ import (
 // * -------------------- Config --------------------
 
 type Config struct {
-	Port              string
-	GRPCPort          string
-	GRPCServerAddress string
-	ComputingPower    int
+	Port               string
+	GRPCPort           string
+	GRPCServerAddress  string
+	JWTSecretSignature string
+	ComputingPower     int
 }
 
 func NewConfig() *Config {
@@ -80,12 +82,23 @@ func (app Application) Run(grpc_server *grpc.Server) error {
 	defer cancel()
 
 	//Todo: Добавить path в env app
-	db, err := database.NewDataBase(ctx, "data.db")
+	expressions_db, err := database.NewDataBase(ctx, "expressions.db")
 	if err != nil {
 		return err
 	}
 
-	app.EnableOrchestratorService(grpc_server, db)
+	users_db, err := database.NewDataBase(ctx, "users.db")
+	if err != nil {
+		return err
+	}
+
+	if err := orchestrator.RegisterServer(ctx, grpc_server, expressions_db); err != nil {
+		return err
+	}
+
+	if err := logreg.RegisterServer(ctx, grpc_server, users_db, app.cfg.JWTSecretSignature); err != nil {
+		return err
+	}
 
 	//* Start gRPC server
 	lis, err := net.Listen("tcp", app.cfg.GRPCServerAddress)
@@ -127,11 +140,6 @@ func (app Application) Run(grpc_server *grpc.Server) error {
 	}
 
 	return nil
-}
-
-func (app Application) EnableOrchestratorService(grpc_server *grpc.Server, db *database.DataBase) {
-	orchestratorServiceServer := orchestrator.NewServer(db)
-	orch_pb.RegisterOrchestratorServiceServer(grpc_server, orchestratorServiceServer)
 }
 
 // * ------------------- HTTP Server --------------------
