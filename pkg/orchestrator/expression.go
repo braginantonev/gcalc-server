@@ -295,10 +295,10 @@ func (s *Server) setTasksQueue(expression *pb.Expression) error {
 }
 
 func Register(ctx context.Context, grpcServer *grpc.Server, server_db *database.DataBase) error {
-	log.Println("Orchestrator: tcp listener started at port:")
+	if server_db == nil {
+		return database.ErrDBNotInit
+	}
 
-	orchestratorServiceServer := NewServer(server_db)
-	pb.RegisterOrchestratorServiceServer(grpcServer, orchestratorServiceServer)
-
+	pb.RegisterOrchestratorServiceServer(grpcServer, NewServer(server_db))
 	return nil
 }
