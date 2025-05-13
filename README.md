@@ -26,7 +26,7 @@ JWTSecretSignature="your_super_secret_signature"
 ```
 !!! Attention !!!
 JWT signature in env JWTSecretSignature not found.
-Please go to README.md - Installation, and follow the instruction!
+Please go to README.md - Usage, and follow the instruction!
 ```
    Run server with next command: ``` PORT=8080 GRPCPort=5000 COMPUTING_POWER=5 JWTSecretSignature="your_super_secret_signature" go run cmd/main.go ```
 
