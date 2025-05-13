@@ -63,11 +63,11 @@ func NewConfig() *Config {
 		panic(`
 		!!! Attention !!!
 		JWT signature in env JWTSecretSignature not found.
-		Please go to README.md - Installation, and follow the instruction!
+		Please go to README.md - Usage, and follow the instruction!
 		
 		!!! Внимание !!!
 		JWT сигнатура в переменной окружения JWTSecretSignature не найдена.
-		Пожалуйста перейдите в README.md - Installation и проследуйте инструкции!
+		Пожалуйста перейдите в README.md - Usage и проследуйте инструкции!
 		`)
 	}
 
