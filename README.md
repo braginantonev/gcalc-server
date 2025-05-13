@@ -21,7 +21,15 @@ GRPCPort=5000
 COMPUTING_POWER=5
 JWTSecretSignature="your_super_secret_signature"
 ```
-4. For run http server: ```go run cmd/main.go``` (For Windows use Git Bash or WSL)
+4. For run http server: ```go run cmd/main.go``` (For Windows use Git Bash or WSL).
+   * If you have error:
+```
+!!! Attention !!!
+JWT signature in env JWTSecretSignature not found.
+Please go to README.md - Installation, and follow the instruction!
+```
+   Run server with next command: ``` PORT=8080 GRPCPort=5000 COMPUTING_POWER=5 JWTSecretSignature="your_super_secret_signature" go run cmd/main.go ```
+
 5. To stop server use ```Ctrl+C```
 
 ### Available request (examples)
