@@ -17,7 +17,7 @@ curl localhost:<порт>/api/v1/calculate -X POST --header 'Content-Type: appli
 Сервер возвращает `id` номер выражения:
 ``` JSON
 {
-    "id":0
+    "id": 0
 }
 ```
 Возможные статусы ответа:
@@ -33,8 +33,8 @@ curl http://localhost:<port>/api/v1/expressions/<id>
 
 ``` JSON
 {
-    "id":"0",
-    "status":"in progress"
+    "id": 0,
+    "status": "in progress"
 }
 ```
 
@@ -42,9 +42,9 @@ curl http://localhost:<port>/api/v1/expressions/<id>
 ``` JSON
 {
     "expression": {
-        "id":"0",
-        "status":"complete",
-        "result":4
+        "id": 0,
+        "status": "complete",
+        "result": 4
     }
 }
 ```
@@ -64,14 +64,14 @@ curl http://localhost:<port>/api/v1/expressions
 {
     "expressions": [
         {
-            "id":"0",
-            "status":"complete",
-            "result":9
+            "id":0,
+            "status": "complete",
+            "result": 9
         },
         {
-            "id":"1",
-            "status":"complete",
-            "result":3
+            "id": 1,
+            "status": "complete",
+            "result": 3
         }
     ]
 }

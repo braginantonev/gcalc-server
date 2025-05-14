@@ -33,7 +33,7 @@ curl http://localhost:<port>/api/v1/expressions/<id>
 
 ``` JSON
 {
-    "id": "0",
+    "id": 0,
     "status": "in progress"
 }
 ```
@@ -42,7 +42,7 @@ If the example has already been solved, the response will contain the result of 
 ``` JSON
 {
     { "expression": {
-        "id": "0",
+        "id": 0,
         "status": "complete",
         "result":4
     }
@@ -64,12 +64,12 @@ curl http://localhost:<port>/api/v1/expressions
 {
     "expressions": [
         {
-            "id": "0",
+            "id": 0,
             "status": "complete",
             "result":9
         },
         {
-            "id": "1",
+            "id": 1,
             "status": "complete",
             "result":3
         }

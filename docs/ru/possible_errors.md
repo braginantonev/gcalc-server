@@ -22,7 +22,7 @@
 Ответ (Код ```422```):
 ```JSON
 {
-    "id":"0",
+    "id": 0,
     "error": "divide by zero"
 }
 ```
@@ -40,8 +40,8 @@
 Ответ (Код ```422```):
 ```JSON
 {
-    "id":"0",
-    "error":"expression empty"
+    "id": 0,
+    "error": "expression empty"
 }
 ```
 
@@ -58,7 +58,7 @@
 Ответ (Код ```422```):
 ```JSON
 {
-    "id":"0",
+    "id":0,
     "error": "operation don't have a value"
 }
 ```
@@ -76,7 +76,7 @@
 Ответ (Код ```422```):
 ```JSON
 {
-    "id":"0",
+    "id": 0,
     "error": "not found opened or closed bracket"
 }
 ```
@@ -94,7 +94,7 @@
 Ответ (Код ```422```):
 ```JSON
 {
-    "id":"0",
+    "id": 0,
     "error": "expression incorrect"
 }
 ```
@@ -110,8 +110,8 @@ curl localhost:8080/api/v1/calculate -X POST --header "application/json"
 Ответ (Код ```400```):
 ```JSON
 {
-    "id":"0",
-    "error":"Request body empty"
+    "id": 0,
+    "error": "Request body empty"
 }
 ```
 
@@ -126,8 +126,8 @@ curl localhost:8080/api/v1/calculate -X POST --header "application/json" --data 
 Ответ (Код ```415```):
 ```JSON
 {
-    "id":"0",
-    "error":"Unsupported request body type"
+    "id": 0,
+    "error": "Unsupported request body type"
 }
 ```
 
