@@ -34,15 +34,17 @@ type Config struct {
 
 func NewConfig() *Config {
 	cfg := new(Config)
-	cfg.Port = os.Getenv("PORT")
-	if cfg.Port == "" {
+	var loaded bool
+
+	cfg.Port, loaded = os.LookupEnv("PORT")
+	if !loaded {
 		cfg.Port = "8080"
 		slog.Warn("env: \"PORT\" not found. Set default - 8080")
 	}
 	slog.Info("Server has been configured successfully")
 
-	cfg.GRPCPort = os.Getenv("GRPCPort")
-	if cfg.GRPCPort == "" {
+	cfg.GRPCPort, loaded = os.LookupEnv("GRPCPort")
+	if !loaded {
 		cfg.GRPCPort = "5000"
 		slog.Warn("env: \"GRPCPort\" not found. Set default - 5000")
 	}
@@ -51,15 +53,21 @@ func NewConfig() *Config {
 	slog.Info("Orchestrator will be started", slog.String("address", cfg.GRPCServerAddress))
 
 	var err error
-	cfg.ComputingPower, err = strconv.Atoi(os.Getenv("COMPUTING_POWER"))
+	got_compower, loaded := os.LookupEnv("COMPUTING_POWER")
+	if !loaded {
+		cfg.ComputingPower = 1
+		slog.Warn("env: \"ComputingPower\" not found. Set default - 1")
+	}
+
+	cfg.ComputingPower, err = strconv.Atoi(got_compower)
 	if err != nil {
 		cfg.ComputingPower = 1
-		slog.Warn("env: \"COMPUTING_POWER\" not found or not integer")
+		slog.Warn("env: \"COMPUTING_POWER\" not integer")
 	}
 	slog.Info("Set", slog.String("Computing power", fmt.Sprint(cfg.ComputingPower)))
 
-	cfg.JWTSecretSignature = os.Getenv("JWTSecretSignature")
-	if cfg.JWTSecretSignature == "" {
+	cfg.JWTSecretSignature, loaded = os.LookupEnv("JWTSecretSignature")
+	if !loaded {
 		panic(`
 		!!! Attention !!!
 		JWT signature in env JWTSecretSignature not found.
