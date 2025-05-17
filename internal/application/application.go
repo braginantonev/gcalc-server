@@ -56,7 +56,7 @@ func NewConfig() *Config {
 	got_compower, loaded := os.LookupEnv("COMPUTING_POWER")
 	if !loaded {
 		cfg.ComputingPower = 1
-		slog.Warn("env: \"ComputingPower\" not found. Set default - 1")
+		slog.Warn("env: \"COMPUTING_POWER\" not found. Set default - 1")
 	}
 
 	cfg.ComputingPower, err = strconv.Atoi(got_compower)
@@ -64,7 +64,7 @@ func NewConfig() *Config {
 		cfg.ComputingPower = 1
 		slog.Warn("env: \"COMPUTING_POWER\" not integer")
 	}
-	slog.Info("Set", slog.String("Computing power", fmt.Sprint(cfg.ComputingPower)))
+	slog.Info("Set", slog.String("COMPUTING_POWER", fmt.Sprint(cfg.ComputingPower)))
 
 	cfg.JWTSecretSignature, loaded = os.LookupEnv("JWTSecretSignature")
 	if !loaded {
