@@ -53,7 +53,7 @@ func getUsername(r *http.Request) (string, bool) {
 func logFailedConvert(handler_name, resp_json string, w *http.ResponseWriter) {
 	(*w).WriteHeader(http.StatusInternalServerError)
 	slog.Error("Failed convert response to JSON", slog.String("handler_name", handler_name))
-	slog.Debug("expression:", string(expression), "\nresponse json:", resp_json)
+	slog.Debug("[Debug]", slog.String("expression", string(expression)), slog.String("response json", resp_json))
 }
 
 func RequestEmpty(fn http.HandlerFunc) http.HandlerFunc {
